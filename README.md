@@ -1,2 +1,2 @@
-# twitch-analytics-demo
+# Twitch Analytics Demo
 twitch analytics demo app

@@ -1,0 +1,50 @@
+Loadanje streams.csv
+
+LOAD CSV FROM "/usr/lib/memgraph/import-data/streams.csv" WITH HEADER DELIMITER "," AS row
+CREATE (u:User:Stream {id: ToString(row.id), name: Tostring(row.name), followers: ToInteger(row.followers), createdAt: ToString(row.createdAt), totalViewCount: ToInteger(row.totalViewCount), description: ToString(row.description)}) 
+MERGE (l:Language {name: ToString(row.language)})
+CREATE (u)-[:SPEAKS]->(l)
+MERGE (g:Game{name: ToString(row.game_name)})
+CREATE (u)-[:PLAYS]->(g)
+
+Loadanje teams.csv
+
+LOAD CSV FROM "/usr/lib/memgraph/import-data/teams.csv" WITH HEADER DELIMITER "," AS row
+MATCH (s:User:Stream)
+WHERE s.id = toString(row.user_id)
+MERGE (t:Team {name: toString(row.team_name)})
+CREATE (s)-[:IS_PART_OF]->(t)
+
+Loadanje vips.csv
+
+LOAD CSV FROM "/usr/lib/memgraph/import-data/vips.csv" WITH HEADER DELIMITER "," AS row
+MATCH (s:User:Stream)
+WHERE s.id = toString(row.user_id)
+MERGE (v:User {name: toString(row.vip_login)})
+CREATE (v)-[:VIP]->(s)
+
+Loadanje moderators.csv
+
+LOAD CSV FROM "/usr/lib/memgraph/import-data/moderators.csv" WITH HEADER DELIMITER "," AS row
+MATCH (s:User:Stream)
+WHERE s.id = toString(row.user_id)
+MERGE(m:User {name: toString(row.moderator_login)})
+CREATE (m)-[:MODERATOR]->(s)
+
+Loadanje chatters.csv
+
+LOAD CSV FROM "/usr/lib/memgraph/import-data/chatters.csv" WITH HEADER DELIMITER "," AS row
+MATCH (s:User:Stream)
+WHERE s.id = toString(row.user_id)
+CREATE (c:User {name: toString(row.chatter_login)})
+CREATE (c)-[:CHATTER]->(s)
+
+
+Loadanje chatters.csv na drugi nacin (Ivan)
+
+LOAD CSV FROM "/usr/lib/memgraph/import-data/chatters.csv" WITH HEADER DELIMITER "," AS row
+MATCH (s:User:Stream {id: toString(row.user_id)})
+MERGE (c:User {name: toString(row.chatter_login)})
+CREATE (c)-[:CHATTER]->(s)
+
+

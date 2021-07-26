@@ -7,6 +7,8 @@ from flask import Flask, Response, render_template
 from pathlib import Path
 import json
 
+from werkzeug.wrappers import response
+
 log = logging.getLogger(__name__)
 
 
@@ -63,8 +65,6 @@ app = Flask(
     static_url_path="",
 )
 
-
-
 def log_time(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -75,14 +75,8 @@ def log_time(func):
         return result
     return wrapper
 
-
-@app.route("/load-data", methods=["GET"])
 @log_time
-def load_data():
-    """Load data into the database."""
-
-    try:
-        memgraph.drop_database()
+def load_twitch_data():
         path_streams = Path("/usr/lib/memgraph/import-data/streams.csv")
         path_teams = Path("/usr/lib/memgraph/import-data/teams.csv")
         path_vips = Path("/usr/lib/memgraph/import-data/vips.csv")
@@ -124,10 +118,20 @@ def load_data():
             MERGE(m:User {{name: toString(row.moderator_login)}})
             CREATE (m)-[:MODERATOR]->(s);"""
         )
+
+@app.route("/load-data", methods=["GET"])
+@log_time
+def load_data():
+    """Load data into the database."""
+
+    try:
+        #if --populate-database == false
+        memgraph.drop_database()      
+        load_twitch_data()
         return Response(status=200)
     except Exception as e:
         log.info("Data loading error.")
-        log.info(e)
+        log.info(e) 
         return Response(status=500)
 
 
@@ -151,19 +155,22 @@ def get_data():
         for result in results:
             source_id = result["from"].properties['id']
             target_id = result["to"].properties['name']
+            source_label = list(result["from"].labels)[0] # can be User or Stream
+            target_label = list(result["to"].labels)[0]
 
-            nodes_set.add(source_id)
-            nodes_set.add(target_id)
+            print(source_label)
+            nodes_set.add((source_id, source_label)) 
+            nodes_set.add((target_id, target_label))
 
             if (source_id, target_id) not in links_set and (
                 target_id,
-                source_id,
+                source_id,  
             ) not in links_set:
-                links_set.add((source_id, target_id))
-
+                links_set.add((source_id, target_id))  
+ 
         nodes = [
-            {"id": node_id}
-            for node_id in nodes_set
+            {"id": node_id, "label": node_label}
+            for node_id, node_label in nodes_set
         ]
         links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
 
@@ -173,10 +180,10 @@ def get_data():
     except Exception as e:
         log.info("Data fetching went wrong.")
         log.info(e)
-        return ("", 500)
+        return ("", 500) 
 
-
-@app.route("/", methods=["GET"])
+ 
+@app.route("/", methods=["GET"]) 
 def index():
     return render_template("index.html")
 

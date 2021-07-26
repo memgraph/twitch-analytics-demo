@@ -56,7 +56,9 @@ function get_graph() {
         .data(nodes)
         .join("circle")
         .attr("r", 5)
-        .attr("fill", "orange")
+        .attr("fill", function (d) {
+          return d.label === "Team" ? "red" : "orange";
+        })
         .call(drag(simulation));
 
       simulation.on("tick", () => {

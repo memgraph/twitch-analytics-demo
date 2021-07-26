@@ -9,6 +9,10 @@ RUN apt-get update && \
 COPY requirements.txt ./
 RUN pip3 install -r requirements.txt
 
+COPY public /app/public
+COPY app.py /app/app.py
+WORKDIR /app
+
 ENV FLASK_ENV=development
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8

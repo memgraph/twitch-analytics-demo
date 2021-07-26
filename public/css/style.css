@@ -1,0 +1,11 @@
+svg {
+  border: 2px solid rgb(77, 77, 77);
+  border-radius: 25px;
+  width: 1400px;
+  height: 600px;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}

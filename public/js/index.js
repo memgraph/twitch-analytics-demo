@@ -14,24 +14,66 @@ function load_data() {
 
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
-      get_graph();
+      //get_graph();
+      console.log("LOAD DATA SUCCESS!");
     }
   };
   xmlhttp.send();
 }
 
-function get_top_streamers_by_views(num_of_streamers) {
+function populate_result_table(streamers, numbers, html_text) {
+  var table = document.getElementById("top_streamers");
+  var table_column = document.getElementById("followers/views");
+  table_column.innerHTML = html_text;
+  var tbody = document.getElementById("streamers_body");
+  tbody.innerHTML = "";
+  var views_or_followers = html_text.toLowerCase();
+
+  for (var i = 0; i < streamers.length; i++) {
+    var tr = document.createElement("tr");
+    var th = document.createElement("th");
+    var att_scope = document.createAttribute("scope");
+    att_scope.value = "row";
+    var td_streamer = document.createElement("td");
+    var td_views = document.createElement("td");
+    var text_1 = document.createTextNode(String(streamers[i]["name"]));
+    var text_2 = document.createTextNode(
+      String(numbers[i][views_or_followers])
+    );
+    td_streamer.appendChild(text_1);
+    td_views.appendChild(text_2);
+    th.setAttributeNode(att_scope);
+    var text_3 = document.createTextNode(String(i + 1));
+    th.appendChild(text_3);
+    tr.appendChild(th);
+    tr.appendChild(td_streamer);
+    tr.appendChild(td_views);
+    tbody.appendChild(tr);
+    table.appendChild(tbody);
+  }
+  var tr = document.createElement("tr");
+}
+
+function get_top_streamers_by_views() {
+  var num_of_streamers = document.getElementById("num_of_streamers").value;
   xmlhttp.open("GET", "/get-top-streamers-by-views/" + num_of_streamers, true);
   xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
       console.log("TOP STREAMERS BY VIEWS SUCCESS!");
+      data = JSON.parse(xmlhttp.responseText);
+      streamers = data.streamers;
+      views = data.views;
+      console.log(streamers);
+      console.log(views);
+      populate_result_table(streamers, views, "Views");
     }
   };
   xmlhttp.send();
 }
 
-function get_top_streamers_by_followers(num_of_streamers) {
+function get_top_streamers_by_followers() {
+  var num_of_streamers = document.getElementById("num_of_streamers").value;
   xmlhttp.open(
     "GET",
     "/get-top-streamers-by-followers/" + num_of_streamers,
@@ -41,6 +83,12 @@ function get_top_streamers_by_followers(num_of_streamers) {
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
       console.log("TOP STREAMERS BY FOLLOWERS SUCCESS!");
+      data = JSON.parse(xmlhttp.responseText);
+      streamers = data.streamers;
+      followers = data.followers;
+      console.log(streamers);
+      console.log(followers);
+      populate_result_table(streamers, followers, "Followers");
     }
   };
   xmlhttp.send();

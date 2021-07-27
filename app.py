@@ -212,24 +212,24 @@ def get_top_streamers_by_views(num_of_streamers):
             LIMIT """ + str(num_of_streamers) + """;"""
         )
 
-        streamers_set = set()
-        views_set = set()
+        streamers_list = list()
+        views_list = list()
 
         for result in results:
             streamer_name = result['streamer']
             total_views = result['total_view_count']
             print(streamer_name)
             print(total_views)
-            streamers_set.add(streamer_name)
-            views_set.add(total_views)
+            streamers_list.append(streamer_name)
+            views_list.append(total_views)
 
         streamers = [
             {"name": streamer_name}
-            for streamer_name in streamers_set
+            for streamer_name in streamers_list
         ]
         views = [
             {"views": view_count}
-            for view_count in views_set
+            for view_count in views_list
         ]
         response = {"streamers": streamers, "views": views}
         return Response(json.dumps(response), status=200, mimetype="application/json")
@@ -252,22 +252,20 @@ def get_top_streamers_by_followers(num_of_streamers):
             ORDER BY num_of_followers DESC
             LIMIT """ + str(num_of_streamers) + """;"""
         )
-        streamers_set = set()
-        followers_set = set()
+        streamers_list = list()
+        followers_list = list()
         for result in results: 
             streamer_name = result['streamer']
             num_of_followers = result['num_of_followers']
-            print(streamer_name) 
-            print(num_of_followers)
-            streamers_set.add(streamer_name) 
-            followers_set.add(num_of_followers)
+            streamers_list.append(streamer_name) 
+            followers_list.append(num_of_followers)
         streamers = [
-            {"name": streamer_name}
-            for streamer_name in streamers_set
-        ]
+            {"name": streamer_name} 
+            for streamer_name in streamers_list
+        ] 
         followers = [
             {"followers": follower_count}
-            for follower_count in followers_set
+            for follower_count in followers_list
         ]
         response = {"streamers": streamers, "followers": followers}
         return Response(json.dumps(response), status=200, mimetype="application/json")

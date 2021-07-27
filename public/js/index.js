@@ -15,7 +15,6 @@ function load_data() {
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
       get_graph();
-      get_top_streamers_by_followers(15);
     }
   };
   xmlhttp.send();

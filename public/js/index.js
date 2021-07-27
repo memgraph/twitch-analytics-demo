@@ -15,6 +15,33 @@ function load_data() {
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
       get_graph();
+      get_top_streamers_by_followers(15);
+    }
+  };
+  xmlhttp.send();
+}
+
+function get_top_streamers_by_views(num_of_streamers) {
+  xmlhttp.open("GET", "/get-top-streamers-by-views/" + num_of_streamers, true);
+  xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
+      console.log("TOP STREAMERS BY VIEWS SUCCESS!");
+    }
+  };
+  xmlhttp.send();
+}
+
+function get_top_streamers_by_followers(num_of_streamers) {
+  xmlhttp.open(
+    "GET",
+    "/get-top-streamers-by-followers/" + num_of_streamers,
+    true
+  );
+  xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
+      console.log("TOP STREAMERS BY FOLLOWERS SUCCESS!");
     }
   };
   xmlhttp.send();

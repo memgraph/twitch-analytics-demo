@@ -30,7 +30,7 @@ def parse_args():
         "--template-folder",
         default="public/template",
         help="Path to the directory with flask templates.",
-    )
+    ) 
     parser.add_argument(
         "--static-folder",
         default="public",
@@ -42,26 +42,38 @@ def parse_args():
         action="store_true",
         help="Run web server in debug mode.",
     )
-    print(__doc__)
+    parser.add_argument(
+        "--populate",
+        dest="populate",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--no-populate",
+        dest="populate",
+        action="store_false",
+    )
+    parser.set_defaults(populate=True)
+    #print(__doc__)
     return parser.parse_args()
 
 
 args = parse_args()
+print("POPULATE:" + str(args.populate))
 
 memgraph = Memgraph()
 connection_established = False
 while(not connection_established):
     try:
-        if (memgraph._get_cached_connection().is_active()):
+        if (memgraph._get_cached_connection().is_active()):  
             connection_established = True
     except:
         log.info("Memgraph probably isn't running.")
         time.sleep(4)
-
+ 
 app = Flask(
     __name__,
     template_folder=args.template_folder,
-    static_folder=args.static_folder,
+    static_folder=args.static_folder, 
     static_url_path="",
 )
 
@@ -123,16 +135,19 @@ def load_twitch_data():
 @log_time
 def load_data():
     """Load data into the database."""
-
-    try:
-        #if --populate-database == false
-        memgraph.drop_database()      
-        load_twitch_data()
+    if args.populate:
+        print("LOADING DATA INTO MEMGRAPH")
+        try:
+            memgraph.drop_database()      
+            load_twitch_data()
+            return Response(status=200)
+        except Exception as e:
+            log.info("Data loading error.")
+            log.info(e) 
+            return Response(status=500)
+    else:
+        print("DATA IS ALREADY LOADED")
         return Response(status=200)
-    except Exception as e:
-        log.info("Data loading error.")
-        log.info(e) 
-        return Response(status=500)
 
 
 
@@ -140,25 +155,25 @@ def load_data():
 @log_time
 def get_data():
     """Load everything from the database."""
-    try:
+
+    try: 
         results = (
             Match()
             .node("User", variable="from")
             .to("IS_PART_OF")
             .node("Team", variable="to")
             .execute()
-        )
+        ) 
 
-        # Set for quickly check if we have already added the node or the edge
         nodes_set = set()
         links_set = set()
+
         for result in results:
             source_id = result["from"].properties['id']
             target_id = result["to"].properties['name']
             source_label = list(result["from"].labels)[0] # can be User or Stream
             target_label = list(result["to"].labels)[0]
 
-            print(source_label)
             nodes_set.add((source_id, source_label)) 
             nodes_set.add((target_id, target_label))
 
@@ -177,13 +192,76 @@ def get_data():
         response = {"nodes": nodes, "links": links}
 
         return Response(json.dumps(response), status=200, mimetype="application/json")
+
     except Exception as e:
         log.info("Data fetching went wrong.")
         log.info(e)
         return ("", 500) 
 
+
+@app.route("/get-top-streamers-by-views/<num_of_streamers>", methods=["GET"])
+@log_time
+def get_top_streamers_by_views(num_of_streamers):
+    """Get top _num_ streamers by total number of views."""
+
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH(u:Stream)
+            RETURN u.name as streamer, u.totalViewCount as total_view_count
+            ORDER BY total_view_count DESC
+            LIMIT """ + str(num_of_streamers) + """;"""
+        )
+
+        streamers = set()
+        views = set()
+
+        for result in results:
+            streamer_name = result['streamer']
+            total_views = result['total_view_count']
+            print(streamer_name)
+            print(total_views)
+            streamers.add(streamer_name)
+            views.add(total_views)
+
+        response = {"streamers": streamers, "views": views}
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching top streamers by views went wrong.")
+        log.info(e)
+        return ("", 500) 
+
+
+@app.route("/get-top-streamers-by-followers/<num_of_streamers>", methods=["GET"])
+@log_time
+def get_top_streamers_by_followers(num_of_streamers):
+    """Get top _num_ streamers by total number of followers."""
+
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH(u:Stream)
+            RETURN u.name as streamer, u.followers as num_of_followers
+            ORDER BY num_of_followers DESC
+            LIMIT """ + str(num_of_streamers) + """;"""
+        )
+        streamers = set()
+        followers = set()
+        for result in results: 
+            streamer_name = result['streamer']
+            num_of_followers = result['num_of_followers']
+            print(streamer_name) 
+            print(num_of_followers)
+            streamers.add(streamer_name) 
+            followers.add(num_of_followers)
+        response = {"streamers": streamers, "num_of_followers": followers}
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching top streamers by followers went wrong.")
+        log.info(e) 
+        return ("", 500)
  
-@app.route("/", methods=["GET"]) 
+@app.route("/", methods=["GET"])  
 def index():
     return render_template("index.html")
 
@@ -193,4 +271,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main()  

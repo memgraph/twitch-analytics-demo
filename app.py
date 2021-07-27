@@ -274,6 +274,47 @@ def get_top_streamers_by_followers(num_of_streamers):
         log.info("Fetching top streamers by followers went wrong.")
         log.info(e) 
         return ("", 500)
+
+
+@app.route("/get-top-games/<num_of_games>", methods=["GET"])
+@log_time
+def get_top_games(num_of_games):
+    """Get top _num_ games by number of streamers who play them."""
+
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH (u:User)-[:PLAYS]->(g:Game)
+            RETURN g.name as game_name, COUNT(u) as number_of_players
+            ORDER BY number_of_players DESC
+            LIMIT """ + str(num_of_games) + """;"""
+        )
+
+        games_list = list()
+        players_list = list()
+
+        for result in results:
+            game_name = result['game_name']
+            num_of_players = result['number_of_players']
+            print(game_name)
+            print(num_of_players)
+            games_list.append(game_name)
+            players_list.append(num_of_players)
+
+        games = [
+            {"name": game_name}
+            for game_name in games_list
+        ]
+        players = [
+            {"players": player_count}
+            for player_count in players_list
+        ]
+        response = {"games": games, "players": players}
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching top games went wrong.")
+        log.info(e)
+        return ("", 500) 
  
 @app.route("/", methods=["GET"])  
 def index():

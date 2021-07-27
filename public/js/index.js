@@ -21,24 +21,31 @@ function load_data() {
   xmlhttp.send();
 }
 
-function populate_result_table(streamers, numbers, html_text) {
+function populate_result_table(
+  first_column_data,
+  second_column_data,
+  first_column_text,
+  second_column_text
+) {
   var table = document.getElementById("top_streamers");
-  var table_column = document.getElementById("followers/views");
-  table_column.innerHTML = html_text;
+  var first_column = document.getElementById("first_column");
+  var second_column = document.getElementById("second_column");
+  first_column.innerHTML = first_column_text;
+  second_column.innerHTML = second_column_text;
   var tbody = document.getElementById("streamers_body");
   tbody.innerHTML = "";
-  var views_or_followers = html_text.toLowerCase();
+  var second_column_name = second_column_text.toLowerCase();
 
-  for (var i = 0; i < streamers.length; i++) {
+  for (var i = 0; i < first_column_data.length; i++) {
     var tr = document.createElement("tr");
     var th = document.createElement("th");
     var att_scope = document.createAttribute("scope");
     att_scope.value = "row";
     var td_streamer = document.createElement("td");
     var td_views = document.createElement("td");
-    var text_1 = document.createTextNode(String(streamers[i]["name"]));
+    var text_1 = document.createTextNode(String(first_column_data[i]["name"]));
     var text_2 = document.createTextNode(
-      String(numbers[i][views_or_followers])
+      String(second_column_data[i][second_column_name])
     );
     td_streamer.appendChild(text_1);
     td_views.appendChild(text_2);
@@ -66,7 +73,7 @@ function get_top_streamers_by_views() {
       views = data.views;
       console.log(streamers);
       console.log(views);
-      populate_result_table(streamers, views, "Views");
+      populate_result_table(streamers, views, "Streamers", "Views");
     }
   };
   xmlhttp.send();
@@ -88,7 +95,25 @@ function get_top_streamers_by_followers() {
       followers = data.followers;
       console.log(streamers);
       console.log(followers);
-      populate_result_table(streamers, followers, "Followers");
+      populate_result_table(streamers, followers, "Streamers", "Followers");
+    }
+  };
+  xmlhttp.send();
+}
+
+function get_top_games() {
+  var num_of_games = document.getElementById("num_of_games").value;
+  xmlhttp.open("GET", "/get-top-games/" + num_of_games, true);
+  xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
+      console.log("TOP GAMES SUCCESS!");
+      data = JSON.parse(xmlhttp.responseText);
+      games = data.games;
+      players = data.players;
+      console.log(games);
+      console.log(players);
+      populate_result_table(games, players, "Games", "Players");
     }
   };
   xmlhttp.send();

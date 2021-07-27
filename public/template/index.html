@@ -70,12 +70,12 @@
                                 min="1"
                                 max="50"
                                 class="form-control"
-                                id="num_of_streamers"
+                                id="num_of_games"
                                 value="1"
                             />
                         </div>
                         <br>
-                        <a href="#" class="btn btn-outline-primary" tabindex="-1" role="button" aria-disabled="true" onclick="get_top_streamers_by_followers()">See games</a>
+                        <a href="#" class="btn btn-outline-primary" tabindex="-1" role="button" aria-disabled="true" onclick="get_top_games()">See games</a>
                     </form>
                 </div>
             </div>
@@ -87,8 +87,8 @@
         <thead>
           <tr>
             <th scope="col">#</th>
-            <th scope="col">Streamer</th>
-            <th scope="col" id="followers/views"></th>
+            <th scope="col" id ="first_column"></th>
+            <th scope="col" id="second_column"></th>
           </tr>
         </thead>
         <tbody id="streamers_body">

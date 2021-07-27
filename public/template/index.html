@@ -23,77 +23,133 @@
       <h1>Twitch Analytics Demo</h1>
     </div>
 
-    <!--TOP STREAMERS-->
-    
-    <div class="container">
-        <div class="row">
-          <div class="col-sm">
-                <div class="card" style="width: 18rem">
-                    <div class="card-body">
-                        <h5 class="card-title">Top streamers</h5>
-                        <p class="card-text">
-                        Find out who are top streamers either by their total number of
-                        followers or views.
-                        </p>
-                        <form>
-                            <div class="form-group">
-                                <label for="exampleInputEmail1">Number of streamers</label>
-                                <input
-                                type="number"
-                                min="1"
-                                max="50"
-                                class="form-control"
-                                id="num_of_streamers"
-                                value="1"
-                                />
-                            </div>
-                            <br>
-                            <a href="#" class="btn btn-outline-primary" tabindex="-1" role="button" aria-disabled="true" onclick="get_top_streamers_by_followers()">By followers</a>
-                            <a href="#" class="btn btn-outline-primary" tabindex="-1" role="button" aria-disabled="true" onclick="get_top_streamers_by_views()">By views</a>
-                        </form>
-                    </div>
-                </div>
-            </div>
-    <!--TOP GAMES-->
-            <div class="col-sm">
-                <div class="card" style="width: 18rem">
-                    <div class="card-body">
-                    <h5 class="card-title">Top games</h5>
-                    <p class="card-text">
-                        Find out which games are played by most streamers.
-                    </p>
-                    <form>
-                        <div class="form-group">
-                            <label for="exampleInputEmail1">Number of games</label>
-                            <input
-                                type="number"
-                                min="1"
-                                max="50"
-                                class="form-control"
-                                id="num_of_games"
-                                value="1"
-                            />
-                        </div>
-                        <br>
-                        <a href="#" class="btn btn-outline-primary" tabindex="-1" role="button" aria-disabled="true" onclick="get_top_games()">See games</a>
-                    </form>
-                </div>
-            </div>
+    <!--CARDS SECTION-->
+    <div class="row">
+      <!--TOP STREAMERS-->
+      <div class="col-sm-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Top streamers</h5>
+            <p class="card-text">
+              Find out who are top streamers either by their total number of
+              followers or views.
+            </p>
+            <form>
+              <div class="form-group">
+                <label for="exampleInputEmail1">Number of streamers</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  class="form-control"
+                  id="num_of_streamers"
+                  value="1"
+                />
+              </div>
+              <br />
+              <a
+                href="#"
+                class="btn btn-outline-primary"
+                tabindex="-1"
+                role="button"
+                aria-disabled="true"
+                onclick="get_top_streamers_by_followers()"
+                >By followers</a
+              >
+              <a
+                href="#"
+                class="btn btn-outline-primary"
+                tabindex="-1"
+                role="button"
+                aria-disabled="true"
+                onclick="get_top_streamers_by_views()"
+                >By views</a
+              >
+            </form>
+          </div>
+        </div>
+      </div>
+      <!--TOP GAMES-->
+      <div class="col-sm-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Top games</h5>
+            <p class="card-text">
+              Find out which games are played by most streamers.
+            </p>
+            <form>
+              <div class="form-group">
+                <label for="exampleInputEmail1">Number of games</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  class="form-control"
+                  id="num_of_games"
+                  value="1"
+                />
+              </div>
+              <br />
+              <a
+                href="#"
+                class="btn btn-outline-primary"
+                tabindex="-1"
+                role="button"
+                aria-disabled="true"
+                onclick="get_top_games()"
+                >See games</a
+              >
+            </form>
+          </div>
+        </div>
+      </div>
+      <!--TOP TEAMS-->
+      <div class="col-sm-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Top teams</h5>
+            <p class="card-text">
+              Find out which teams are most popular by the number of players who
+              are their members.
+            </p>
+            <form>
+              <div class="form-group">
+                <label for="exampleInputEmail1">Number of teams</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  class="form-control"
+                  id="num_of_teams"
+                  value="1"
+                />
+              </div>
+              <br />
+              <a
+                href="#"
+                class="btn btn-outline-primary"
+                tabindex="-1"
+                role="button"
+                aria-disabled="true"
+                onclick="get_top_teams()"
+                >See teams</a
+              >
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
-
     <!--TABLE OF RESULTS-->
     <table class="table" id="top_streamers">
-        <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th scope="col" id ="first_column"></th>
-            <th scope="col" id="second_column"></th>
-          </tr>
-        </thead>
-        <tbody id="streamers_body">
-        </tbody>
-      </table>
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col" id="first_column"></th>
+          <th scope="col" id="second_column"></th>
+        </tr>
+      </thead>
+      <tbody id="streamers_body"></tbody>
+    </table>
 
     <!--CONTAINER FOR GRAPH-->
     <div class="container-fluid" style="padding-top: 30px">

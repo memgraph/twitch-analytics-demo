@@ -119,6 +119,24 @@ function get_top_games() {
   xmlhttp.send();
 }
 
+function get_top_teams() {
+  var num_of_teams = document.getElementById("num_of_teams").value;
+  xmlhttp.open("GET", "/get-top-teams/" + num_of_teams, true);
+  xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
+      console.log("TOP TEAMS SUCCESS!");
+      data = JSON.parse(xmlhttp.responseText);
+      teams = data.teams;
+      members = data.members;
+      console.log(teams);
+      console.log(members);
+      populate_result_table(teams, members, "Teams", "Members");
+    }
+  };
+  xmlhttp.send();
+}
+
 function get_graph() {
   xmlhttp.open("GET", "/get-graph", true);
   xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");

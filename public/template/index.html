@@ -63,6 +63,12 @@
               <a onclick="showTopTeams()" class="dropdown-item" href="#"
                 >Top teams</a
               >
+              <a onclick="showTopVips()" class="dropdown-item" href="#"
+                >Top vips</a
+              >
+              <a onclick="showTopModerators()" class="dropdown-item" href="#"
+                >Top moderators</a
+              >
             </div>
           </li>
           <li class="nav-item">
@@ -186,6 +192,74 @@
                 aria-disabled="true"
                 onclick="get_top_teams()"
                 >See teams</a
+              >
+            </form>
+          </div>
+        </div>
+      </div>
+      <!--TOP VIPS-->
+      <div class="col-sm-6" id="top-vips">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Top vips</h5>
+            <p class="card-text">
+              Find out which users have the most vip badges.
+            </p>
+            <form>
+              <div class="form-group">
+                <label for="exampleInputEmail1">Number of vips</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  class="form-control"
+                  id="num_of_vips"
+                  value="1"
+                />
+              </div>
+              <br />
+              <a
+                href="#"
+                class="btn btn-outline-primary"
+                tabindex="-1"
+                role="button"
+                aria-disabled="true"
+                onclick="get_top_vips()"
+                >See vips</a
+              >
+            </form>
+          </div>
+        </div>
+      </div>
+      <!--TOP MODERATORS-->
+      <div class="col-sm-6" id="top-moderators">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Top moderators</h5>
+            <p class="card-text">
+              Find out which users have the most moderator badges.
+            </p>
+            <form>
+              <div class="form-group">
+                <label for="exampleInputEmail1">Number of moderators</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  class="form-control"
+                  id="num_of_moderators"
+                  value="1"
+                />
+              </div>
+              <br />
+              <a
+                href="#"
+                class="btn btn-outline-primary"
+                tabindex="-1"
+                role="button"
+                aria-disabled="true"
+                onclick="get_top_moderators()"
+                >See moderators</a
               >
             </form>
           </div>

@@ -12,7 +12,9 @@ function load_data() {
   document.getElementById("top-games").style.display = "none";
   document.getElementById("top-teams").style.display = "none";
   document.getElementById("top-streamers").style.display = "none";
+  document.getElementById("top-vips").style.display = "none";
   document.getElementById("results_table").style.display = "none";
+  document.getElementById("top-moderators").style.display = "none";
   xmlhttp.open("GET", "/load-data", true);
   xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
 
@@ -145,11 +147,51 @@ function get_top_teams() {
   xmlhttp.send();
 }
 
+function get_top_vips() {
+  var num_of_vips = document.getElementById("num_of_vips").value;
+  xmlhttp.open("GET", "/get-top-vips/" + num_of_vips, true);
+  xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
+      console.log("TOP VIPS SUCCESS!");
+      data = JSON.parse(xmlhttp.responseText);
+      vips = data.vips;
+      streamers = data.streamers;
+      console.log(vips);
+      console.log(streamers);
+      populate_result_table(vips, streamers, "Vips", "Streamers");
+      document.getElementById("results_table").style.display = "inline";
+    }
+  };
+  xmlhttp.send();
+}
+
+function get_top_moderators() {
+  var num_of_moderators = document.getElementById("num_of_moderators").value;
+  xmlhttp.open("GET", "/get-top-moderators/" + num_of_moderators, true);
+  xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
+      console.log("TOP MODERATORS SUCCESS!");
+      data = JSON.parse(xmlhttp.responseText);
+      moderators = data.moderators;
+      streamers = data.streamers;
+      console.log(moderators);
+      console.log(streamers);
+      populate_result_table(moderators, streamers, "Moderators", "Streamers");
+      document.getElementById("results_table").style.display = "inline";
+    }
+  };
+  xmlhttp.send();
+}
+
 function showGraph() {
   document.getElementById("graph").style.display = "inline";
   document.getElementById("top-games").style.display = "none";
   document.getElementById("top-teams").style.display = "none";
   document.getElementById("top-streamers").style.display = "none";
+  document.getElementById("top-vips").style.display = "none";
+  document.getElementById("top-moderators").style.display = "none";
   document.getElementById("results_table").style.display = "none";
 }
 
@@ -257,6 +299,8 @@ function showTopStreamers() {
   document.getElementById("top-games").style.display = "none";
   document.getElementById("top-teams").style.display = "none";
   document.getElementById("top-streamers").style.display = "inline";
+  document.getElementById("top-vips").style.display = "none";
+  document.getElementById("top-moderators").style.display = "none";
 }
 
 function showTopGames() {
@@ -265,6 +309,8 @@ function showTopGames() {
   document.getElementById("top-games").style.display = "inline";
   document.getElementById("top-teams").style.display = "none";
   document.getElementById("top-streamers").style.display = "none";
+  document.getElementById("top-vips").style.display = "none";
+  document.getElementById("top-moderators").style.display = "none";
 }
 
 function showTopTeams() {
@@ -273,4 +319,26 @@ function showTopTeams() {
   document.getElementById("top-games").style.display = "none";
   document.getElementById("top-teams").style.display = "inline";
   document.getElementById("top-streamers").style.display = "none";
+  document.getElementById("top-vips").style.display = "none";
+  document.getElementById("top-moderators").style.display = "none";
+}
+
+function showTopVips() {
+  document.getElementById("results_table").style.display = "none";
+  document.getElementById("graph").style.display = "none";
+  document.getElementById("top-games").style.display = "none";
+  document.getElementById("top-teams").style.display = "none";
+  document.getElementById("top-streamers").style.display = "none";
+  document.getElementById("top-vips").style.display = "inline";
+  document.getElementById("top-moderators").style.display = "none";
+}
+
+function showTopModerators() {
+  document.getElementById("results_table").style.display = "none";
+  document.getElementById("graph").style.display = "none";
+  document.getElementById("top-games").style.display = "none";
+  document.getElementById("top-teams").style.display = "none";
+  document.getElementById("top-streamers").style.display = "none";
+  document.getElementById("top-vips").style.display = "none";
+  document.getElementById("top-moderators").style.display = "inline";
 }

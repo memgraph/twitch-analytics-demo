@@ -53,12 +53,12 @@ def parse_args():
         action="store_false",
     )
     parser.set_defaults(populate=True)
-    #print(__doc__)
+    print(__doc__) 
     return parser.parse_args()
-
+ 
 
 args = parse_args()
-print("POPULATE:" + str(args.populate))
+log.info("POPULATE:" + str(args.populate))
 
 memgraph = Memgraph()
 connection_established = False
@@ -136,7 +136,7 @@ def load_twitch_data():
 def load_data():
     """Load data into the database."""
     if args.populate:
-        print("LOADING DATA INTO MEMGRAPH")
+        log.info("LOADING DATA INTO MEMGRAPH")
         try:
             memgraph.drop_database()      
             load_twitch_data()
@@ -146,7 +146,7 @@ def load_data():
             log.info(e) 
             return Response(status=500)
     else:
-        print("DATA IS ALREADY LOADED")
+        log.info("DATA IS ALREADY LOADED")
         return Response(status=200)
 
 
@@ -218,8 +218,6 @@ def get_top_streamers_by_views(num_of_streamers):
         for result in results:
             streamer_name = result['streamer']
             total_views = result['total_view_count']
-            print(streamer_name)
-            print(total_views)
             streamers_list.append(streamer_name)
             views_list.append(total_views)
 
@@ -244,7 +242,7 @@ def get_top_streamers_by_views(num_of_streamers):
 @log_time
 def get_top_streamers_by_followers(num_of_streamers):
     """Get top _num_ streamers by total number of followers."""
-
+ 
     try:
         results = memgraph.execute_and_fetch(
             """MATCH(u:Stream)
@@ -295,8 +293,6 @@ def get_top_games(num_of_games):
         for result in results:
             game_name = result['game_name']
             num_of_players = result['number_of_players']
-            print(game_name)
-            print(num_of_players)
             games_list.append(game_name)
             players_list.append(num_of_players)
 
@@ -329,7 +325,7 @@ def get_top_teams(num_of_teams):
             RETURN t.name as team_name, COUNT(u) as number_of_members
             ORDER BY number_of_members DESC
             LIMIT """ + str(num_of_teams) + """;"""
-        )
+        ) 
 
         teams_list = list()
         members_list = list()
@@ -337,8 +333,6 @@ def get_top_teams(num_of_teams):
         for result in results:
             team_name = result['team_name']
             num_of_members = result['number_of_members']
-            print(team_name)
-            print(num_of_members)
             teams_list.append(team_name)
             members_list.append(num_of_members)
 
@@ -358,6 +352,86 @@ def get_top_teams(num_of_teams):
         log.info(e)
         return ("", 500) 
  
+
+
+
+@app.route("/get-top-vips/<num_of_vips>", methods=["GET"])
+@log_time
+def get_top_vips(num_of_vips):
+    """Get top _num_of_vips vips by number of streamers who gave them the vip badge."""
+
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH (u:User)<-[:VIP]-(v:User)
+            RETURN v.name as vip_name, COUNT(u) as number_of_streamers
+            ORDER BY number_of_streamers DESC
+            LIMIT """ + str(num_of_vips) + """;"""
+        ) 
+
+        vips_list = list()
+        streamers_list = list()
+
+        for result in results:
+            vip_name = result['vip_name']
+            num_of_streamers = result['number_of_streamers']
+            vips_list.append(vip_name)
+            streamers_list.append(num_of_streamers)
+
+        vips = [
+            {"name": vip_name}
+            for vip_name in vips_list
+        ]
+        streamers = [
+            {"streamers": streamer_count}
+            for streamer_count in streamers_list
+        ]
+        response = {"vips": vips, "streamers": streamers}
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching top teams went wrong.")
+        log.info(e)
+        return ("", 500) 
+
+
+@app.route("/get-top-moderators/<num_of_moderators>", methods=["GET"])
+@log_time
+def get_top_moderators(num_of_moderators):
+    """Get top _num_of_moderators moderators by number of streamers who gave them the moderator badge."""
+
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH (u:User)<-[:MODERATOR]-(m:User)
+            RETURN m.name as moderator_name, COUNT(u) as number_of_streamers
+            ORDER BY number_of_streamers DESC
+            LIMIT """ + str(num_of_moderators) + """;"""
+        ) 
+
+        moderators_list = list()
+        streamers_list = list()
+
+        for result in results:
+            moderator_name = result['moderator_name']
+            num_of_streamers = result['number_of_streamers']
+            moderators_list.append(moderator_name)
+            streamers_list.append(num_of_streamers)
+
+        moderators = [
+            {"name": moderator_name}
+            for moderator_name in moderators_list
+        ]
+        streamers = [
+            {"streamers": streamer_count}
+            for streamer_count in streamers_list
+        ]
+        response = {"moderators": moderators, "streamers": streamers}
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching top teams went wrong.")
+        log.info(e)
+        return ("", 500) 
+
 @app.route("/", methods=["GET"])  
 def index():
     return render_template("index.html")

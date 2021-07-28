@@ -9,12 +9,16 @@ var xmlhttp = new XMLHttpRequest();
 load_data();
 
 function load_data() {
+  document.getElementById("top-games").style.display = "none";
+  document.getElementById("top-teams").style.display = "none";
+  document.getElementById("top-streamers").style.display = "none";
+  document.getElementById("results_table").style.display = "none";
   xmlhttp.open("GET", "/load-data", true);
   xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
 
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
-      //get_graph();
+      get_graph();
       console.log("LOAD DATA SUCCESS!");
     }
   };
@@ -27,7 +31,7 @@ function populate_result_table(
   first_column_text,
   second_column_text
 ) {
-  var table = document.getElementById("top_streamers");
+  var table = document.getElementById("results_table");
   var first_column = document.getElementById("first_column");
   var second_column = document.getElementById("second_column");
   first_column.innerHTML = first_column_text;
@@ -74,6 +78,7 @@ function get_top_streamers_by_views() {
       console.log(streamers);
       console.log(views);
       populate_result_table(streamers, views, "Streamers", "Views");
+      document.getElementById("results_table").style.display = "inline";
     }
   };
   xmlhttp.send();
@@ -96,6 +101,7 @@ function get_top_streamers_by_followers() {
       console.log(streamers);
       console.log(followers);
       populate_result_table(streamers, followers, "Streamers", "Followers");
+      document.getElementById("results_table").style.display = "inline";
     }
   };
   xmlhttp.send();
@@ -114,6 +120,7 @@ function get_top_games() {
       console.log(games);
       console.log(players);
       populate_result_table(games, players, "Games", "Players");
+      document.getElementById("results_table").style.display = "inline";
     }
   };
   xmlhttp.send();
@@ -132,9 +139,18 @@ function get_top_teams() {
       console.log(teams);
       console.log(members);
       populate_result_table(teams, members, "Teams", "Members");
+      document.getElementById("results_table").style.display = "inline";
     }
   };
   xmlhttp.send();
+}
+
+function showGraph() {
+  document.getElementById("graph").style.display = "inline";
+  document.getElementById("top-games").style.display = "none";
+  document.getElementById("top-teams").style.display = "none";
+  document.getElementById("top-streamers").style.display = "none";
+  document.getElementById("results_table").style.display = "none";
 }
 
 function get_graph() {
@@ -216,3 +232,45 @@ drag = (simulation) => {
     .on("drag", dragged)
     .on("end", dragended);
 };
+
+function dropDownMenu() {
+  document.getElementById("myDropdown").classList.toggle("show");
+}
+
+// Close the dropdown menu if the user clicks outside of it
+window.onclick = function (event) {
+  if (!event.target.matches(".dropdown-toggle")) {
+    var dropdowns = document.getElementsByClassName("dropdown-menu");
+    var i;
+    for (i = 0; i < dropdowns.length; i++) {
+      var openDropdown = dropdowns[i];
+      if (openDropdown.classList.contains("show")) {
+        openDropdown.classList.remove("show");
+      }
+    }
+  }
+};
+
+function showTopStreamers() {
+  document.getElementById("results_table").style.display = "none";
+  document.getElementById("graph").style.display = "none";
+  document.getElementById("top-games").style.display = "none";
+  document.getElementById("top-teams").style.display = "none";
+  document.getElementById("top-streamers").style.display = "inline";
+}
+
+function showTopGames() {
+  document.getElementById("results_table").style.display = "none";
+  document.getElementById("graph").style.display = "none";
+  document.getElementById("top-games").style.display = "inline";
+  document.getElementById("top-teams").style.display = "none";
+  document.getElementById("top-streamers").style.display = "none";
+}
+
+function showTopTeams() {
+  document.getElementById("results_table").style.display = "none";
+  document.getElementById("graph").style.display = "none";
+  document.getElementById("top-games").style.display = "none";
+  document.getElementById("top-teams").style.display = "inline";
+  document.getElementById("top-streamers").style.display = "none";
+}

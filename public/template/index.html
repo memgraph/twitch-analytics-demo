@@ -105,7 +105,9 @@
           </li>
           <li class="nav-item">
             <!--active class for active tab-->
-            <a class="nav-link" href="#">Graph Visualization</a>
+            <a onclick="showSection('graph')" class="nav-link" href="#"
+              >Graph Visualization</a
+            >
           </li>
           <li class="nav-item">
             <!--active class for active tab-->
@@ -143,8 +145,10 @@
             special VIP badge that allows them to chat without the effect of
             slow, subscriber-only, or follower-only chat modes. Other users
             participating in chat that don't have special badge are considered
-            regular chatters.Here you can check general statistics where you can
-            find out who are
+            regular chatters.
+          </p>
+          <p class="text-muted">
+            Here you can check general statistics where you can find out who are
             <a onclick="showSection('top-streamers')" class="links-to-general"
               >top streamers</a
             >,
@@ -160,7 +164,15 @@
             or
             <a onclick="showSection('top-moderators')" class="links-to-general"
               >moderators</a
-            >.
+            >. Besides general statistics, at
+            <a onclick="showSection('graph')" class="links-to-general"
+              >graph visualization</a
+            >
+            section you can explore some interesting insights which were made
+            using MAGE (Memgraph Advanced Graph Extensions) query modules. With
+            a help from Memgraph, we can now also develop a streaming app. Check
+            out streaming data section and find out how continuous flow of data
+            can be beautifully visualized.
           </p>
         </div>
       </div>
@@ -361,7 +373,7 @@
       <tbody id="streamers_body"></tbody>
     </table>
 
-    <!--CONTAINER FOR GRAPH-->
+    <!--GRAPH VISUALIZATION-->
     <div id="graph" class="container-fluid" style="padding-top: 30px">
       <svg width="1400" height="600"></svg>
     </div>

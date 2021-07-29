@@ -22,7 +22,7 @@ function load_data() {
 
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
-      //get_graph();
+      get_graph();
       console.log("LOAD DATA SUCCESS!");
     }
   };
@@ -185,16 +185,6 @@ function get_top_moderators() {
     }
   };
   xmlhttp.send();
-}
-
-function showGraph() {
-  document.getElementById("graph").style.display = "inline";
-  document.getElementById("top-games").style.display = "none";
-  document.getElementById("top-teams").style.display = "none";
-  document.getElementById("top-streamers").style.display = "none";
-  document.getElementById("top-vips").style.display = "none";
-  document.getElementById("top-moderators").style.display = "none";
-  document.getElementById("results_table").style.display = "none";
 }
 
 function get_graph() {

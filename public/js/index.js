@@ -201,7 +201,10 @@ function get_graph() {
         .forceSimulation(nodes)
         .force(
           "link",
-          d3.forceLink(links).id((d) => d.id)
+          d3
+            .forceLink(links)
+            .distance(100)
+            .id((d) => d.id)
         )
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(width / 2, height / 2));
@@ -222,11 +225,30 @@ function get_graph() {
         .selectAll("circle")
         .data(nodes)
         .join("circle")
-        .attr("r", 5)
+        .attr("r", 10)
+        .attr("class", "node")
         .attr("fill", function (d) {
           return d.label === "Team" ? "red" : "orange";
         })
         .call(drag(simulation));
+
+      var label = svg
+        .selectAll(null)
+        .data(nodes)
+        .enter()
+        .append("text")
+        .text(function (d) {
+          return d.name; //return d.label for label
+        })
+        .style("text-anchor", "middle")
+        .style("fill", "#555")
+        .style("font-family", "Arial")
+        .style("font-size", "12px");
+
+      /* node.append("text").text(function (d) {
+        console.log(d.name);
+        return d.name;
+      });*/
 
       simulation.on("tick", () => {
         link
@@ -236,6 +258,13 @@ function get_graph() {
           .attr("y2", (d) => d.target.y);
 
         node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+        label
+          .attr("x", function (d) {
+            return d.x;
+          })
+          .attr("y", function (d) {
+            return d.y - 10;
+          });
       });
     }
   };
@@ -316,4 +345,32 @@ function scrollFunction() {
 function topFunction() {
   document.body.scrollTop = 0;
   document.documentElement.scrollTop = 0;
+}
+
+function responsivefy(svg) {
+  // get container + svg aspect ratio
+  var container = d3.select(svg.node().parentNode),
+    width = parseInt(svg.style("width")),
+    height = parseInt(svg.style("height")),
+    aspect = width / height;
+
+  // add viewBox and preserveAspectRatio properties,
+  // and call resize so that svg resizes on inital page load
+  svg
+    .attr("viewBox", "0 0 " + width + " " + height)
+    .attr("perserveAspectRatio", "xMinYMid")
+    .call(resize);
+
+  // to register multiple listeners for same event type,
+  // you need to add namespace, i.e., 'click.foo'
+  // necessary if you call invoke this function for multiple svgs
+  // api docs: https://github.com/mbostock/d3/wiki/Selections#on
+  d3.select(window).on("resize." + container.attr("id"), resize);
+
+  // get width of container and resize svg to fit it
+  function resize() {
+    var targetWidth = parseInt(container.style("width"));
+    svg.attr("width", targetWidth);
+    svg.attr("height", Math.round(targetWidth / aspect));
+  }
 }

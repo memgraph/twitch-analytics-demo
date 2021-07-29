@@ -1,0 +1,11 @@
+
+
+Dopusti korisniku da radio buttonon odabere koje korisnike želi + select all button
+
+napravi listu korisnika koje je odabrao i onda query koji tribas
+ako je select all onda samo vrati sve
+
+
+MATCH (n)
+WHERE id(n) IN [0, 3, 5] (analogno n.name)
+RETURN n

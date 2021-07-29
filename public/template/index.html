@@ -40,7 +40,7 @@
         class="navbar-toggler"
         type="button"
         data-toggle="collapse"
-        data-target="#navbarNavDropdown"
+        data-target=".navbar-collapse"
         aria-controls="navbarNavDropdown"
         aria-expanded="false"
         aria-label="Toggle navigation"
@@ -128,7 +128,8 @@
           <br />
           <img
             src="../images/twitch_memgraph.png"
-            alt="My test image"
+            class="img-fluid"
+            alt="Twitch schema"
             width="700"
             height="auto"
           />
@@ -180,198 +181,210 @@
     <!--GENERAL STATISTICS-->
     <div class="row">
       <!--TOP STREAMERS-->
-      <div class="col-sm-6" id="top-streamers">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Top streamers</h5>
-            <p class="card-text">
-              Find out who are top streamers either by their total number of
-              followers or views.
-            </p>
-            <form>
-              <div class="form-group">
-                <label for="exampleInputEmail1">Number of streamers</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="50"
-                  class="form-control"
-                  id="num_of_streamers"
-                  value="1"
-                />
-              </div>
-              <br />
-              <a
-                href="#"
-                class="btn btn-outline-dark"
-                tabindex="-1"
-                role="button"
-                aria-disabled="true"
-                onclick="get_top_streamers_by_followers()"
-                >By followers</a
-              >
-              <a
-                href="#"
-                class="btn btn-outline-dark"
-                tabindex="-1"
-                role="button"
-                aria-disabled="true"
-                onclick="get_top_streamers_by_views()"
-                >By views</a
-              >
-            </form>
+      <div class="jumbotron text-center">
+        <div class="col-sm-6" id="top-streamers">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Top streamers</h5>
+              <p class="card-text">
+                Find out who are top streamers either by their total number of
+                followers or views.
+              </p>
+              <form>
+                <div class="form-group">
+                  <label for="exampleInputEmail1">Number of streamers</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    class="form-control"
+                    id="num_of_streamers"
+                    value="1"
+                  />
+                </div>
+                <br />
+                <a
+                  href="#"
+                  class="btn btn-outline-dark"
+                  tabindex="-1"
+                  role="button"
+                  aria-disabled="true"
+                  onclick="get_top_streamers_by_followers()"
+                  >By followers</a
+                >
+                <a
+                  href="#"
+                  class="btn btn-outline-dark"
+                  tabindex="-1"
+                  role="button"
+                  aria-disabled="true"
+                  onclick="get_top_streamers_by_views()"
+                  >By views</a
+                >
+              </form>
+            </div>
           </div>
         </div>
       </div>
       <!--TOP GAMES-->
-      <div class="col-sm-6" id="top-games">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Top games</h5>
-            <p class="card-text">
-              Find out which games are played by most streamers.
-            </p>
-            <form>
-              <div class="form-group">
-                <label for="exampleInputEmail1">Number of games</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="50"
-                  class="form-control"
-                  id="num_of_games"
-                  value="1"
-                />
-              </div>
-              <br />
-              <a
-                href="#"
-                class="btn btn-outline-dark"
-                tabindex="-1"
-                role="button"
-                aria-disabled="true"
-                onclick="get_top_games()"
-                >See games</a
-              >
-            </form>
+      <div class="jumbotron text-center">
+        <div class="col-sm-6" id="top-games">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Top games</h5>
+              <p class="card-text">
+                Find out which games are played by most streamers.
+              </p>
+              <form>
+                <div class="form-group">
+                  <label for="exampleInputEmail1">Number of games</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    class="form-control"
+                    id="num_of_games"
+                    value="1"
+                  />
+                </div>
+                <br />
+                <a
+                  href="#"
+                  class="btn btn-outline-dark"
+                  tabindex="-1"
+                  role="button"
+                  aria-disabled="true"
+                  onclick="get_top_games()"
+                  >See games</a
+                >
+              </form>
+            </div>
           </div>
         </div>
       </div>
       <!--TOP TEAMS-->
-      <div class="col-sm-6" id="top-teams">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Top teams</h5>
-            <p class="card-text">
-              Find out which teams are most popular by the number of players who
-              are their members.
-            </p>
-            <form>
-              <div class="form-group">
-                <label for="exampleInputEmail1">Number of teams</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="50"
-                  class="form-control"
-                  id="num_of_teams"
-                  value="1"
-                />
-              </div>
-              <br />
-              <a
-                href="#"
-                class="btn btn-outline-dark"
-                tabindex="-1"
-                role="button"
-                aria-disabled="true"
-                onclick="get_top_teams()"
-                >See teams</a
-              >
-            </form>
+      <div class="jumbotron text-center">
+        <div class="col-sm-6" id="top-teams">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Top teams</h5>
+              <p class="card-text">
+                Find out which teams are most popular by the number of players
+                who are their members.
+              </p>
+              <form>
+                <div class="form-group">
+                  <label for="exampleInputEmail1">Number of teams</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    class="form-control"
+                    id="num_of_teams"
+                    value="1"
+                  />
+                </div>
+                <br />
+                <a
+                  href="#"
+                  class="btn btn-outline-dark"
+                  tabindex="-1"
+                  role="button"
+                  aria-disabled="true"
+                  onclick="get_top_teams()"
+                  >See teams</a
+                >
+              </form>
+            </div>
           </div>
         </div>
       </div>
       <!--TOP VIPS-->
-      <div class="col-sm-6" id="top-vips">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Top vips</h5>
-            <p class="card-text">
-              Find out which users have the most vip badges.
-            </p>
-            <form>
-              <div class="form-group">
-                <label for="exampleInputEmail1">Number of vips</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="50"
-                  class="form-control"
-                  id="num_of_vips"
-                  value="1"
-                />
-              </div>
-              <br />
-              <a
-                href="#"
-                class="btn btn-outline-dark"
-                tabindex="-1"
-                role="button"
-                aria-disabled="true"
-                onclick="get_top_vips()"
-                >See vips</a
-              >
-            </form>
+      <div class="jumbotron text-center">
+        <div class="col-sm-6" id="top-vips">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Top vips</h5>
+              <p class="card-text">
+                Find out which users have the most vip badges.
+              </p>
+              <form>
+                <div class="form-group">
+                  <label for="exampleInputEmail1">Number of vips</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    class="form-control"
+                    id="num_of_vips"
+                    value="1"
+                  />
+                </div>
+                <br />
+                <a
+                  href="#"
+                  class="btn btn-outline-dark"
+                  tabindex="-1"
+                  role="button"
+                  aria-disabled="true"
+                  onclick="get_top_vips()"
+                  >See vips</a
+                >
+              </form>
+            </div>
           </div>
         </div>
       </div>
       <!--TOP MODERATORS-->
-      <div class="col-sm-6" id="top-moderators">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Top moderators</h5>
-            <p class="card-text">
-              Find out which users have the most moderator badges.
-            </p>
-            <form>
-              <div class="form-group">
-                <label for="exampleInputEmail1">Number of moderators</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="50"
-                  class="form-control"
-                  id="num_of_moderators"
-                  value="1"
-                />
-              </div>
-              <br />
-              <a
-                href="#"
-                class="btn btn-outline-dark"
-                tabindex="-1"
-                role="button"
-                aria-disabled="true"
-                onclick="get_top_moderators()"
-                >See moderators</a
-              >
-            </form>
+      <div class="jumbotron text-center">
+        <div class="col-sm-6" id="top-moderators">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Top moderators</h5>
+              <p class="card-text">
+                Find out which users have the most moderator badges.
+              </p>
+              <form>
+                <div class="form-group">
+                  <label for="exampleInputEmail1">Number of moderators</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    class="form-control"
+                    id="num_of_moderators"
+                    value="1"
+                  />
+                </div>
+                <br />
+                <a
+                  href="#"
+                  class="btn btn-outline-dark"
+                  tabindex="-1"
+                  role="button"
+                  aria-disabled="true"
+                  onclick="get_top_moderators()"
+                  >See moderators</a
+                >
+              </form>
+            </div>
           </div>
         </div>
       </div>
     </div>
     <!--TABLE OF RESULTS-->
-    <table class="table" id="results_table">
-      <thead>
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col" id="first_column"></th>
-          <th scope="col" id="second_column"></th>
-        </tr>
-      </thead>
-      <tbody id="streamers_body"></tbody>
-    </table>
+    <div class="jumbotron text-center">
+      <table class="table" id="results_table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col" id="first_column"></th>
+            <th scope="col" id="second_column"></th>
+          </tr>
+        </thead>
+        <tbody id="streamers_body"></tbody>
+      </table>
+    </div>
 
     <!--GRAPH VISUALIZATION-->
     <div id="graph" class="container-fluid" style="padding-top: 30px">

@@ -1,4 +1,4 @@
-/*svg {
+svg {
   border: 2px solid rgb(77, 77, 77);
   border-radius: 25px;
   width: 1400px;
@@ -8,14 +8,7 @@
   margin-left: auto;
   margin-right: auto;
   display: block;
-}*/
-
-/*#about-section {
-  position: fixed;
-  top: 100px;
-  left: 20px;
 }
-*/
 
 #header {
   background-color: #212529;
@@ -27,9 +20,13 @@
 }
 
 .links-to-general {
-  color: #069;
+  color: #910a74;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.links-to-general:hover {
+  color: #ff0008;
 }
 
 #myBtn {

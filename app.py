@@ -173,9 +173,11 @@ def get_data():
             target_id = result["to"].properties['name']
             source_label = list(result["from"].labels)[0] # can be User or Stream
             target_label = list(result["to"].labels)[0]
+            source_name = result["from"].properties['name']
+            target_name = target_id
 
-            nodes_set.add((source_id, source_label)) 
-            nodes_set.add((target_id, target_label))
+            nodes_set.add((source_id, source_label, source_name)) 
+            nodes_set.add((target_id, target_label, target_name))
 
             if (source_id, target_id) not in links_set and (
                 target_id,
@@ -184,8 +186,8 @@ def get_data():
                 links_set.add((source_id, target_id))  
  
         nodes = [
-            {"id": node_id, "label": node_label}
-            for node_id, node_label in nodes_set
+            {"id": node_id, "label": node_label, "name": node_name}
+            for node_id, node_label, node_name in nodes_set
         ]
         links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
 

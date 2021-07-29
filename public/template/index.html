@@ -20,10 +20,9 @@
     <title>Twitch Analytics Demo</title>
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a onclick="showGraph()" class="navbar-brand" href="#"
-        >Twitch Analytics Demo</a
-      >
+    <div id="about-section"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <button
         class="navbar-toggler"
         type="button"
@@ -37,6 +36,11 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNavDropdown">
         <ul class="navbar-nav">
+          <li class="nav-item">
+            <a onclick="showSection('about-section')" class="nav-link" href="#">
+              About</a
+            >
+          </li>
           <li class="nav-item dropdown">
             <a
               onclick="dropDownMenu()"
@@ -54,19 +58,34 @@
               class="dropdown-menu"
               aria-labelledby="navbarDropdownMenuLink"
             >
-              <a onclick="showTopStreamers()" class="dropdown-item" href="#"
+              <a
+                onclick="showSection('top-streamers')"
+                class="dropdown-item"
+                href="#"
                 >Top streamers</a
               >
-              <a onclick="showTopGames()" class="dropdown-item" href="#"
+              <a
+                onclick="showSection('top-games')"
+                class="dropdown-item"
+                href="#"
                 >Top games</a
               >
-              <a onclick="showTopTeams()" class="dropdown-item" href="#"
+              <a
+                onclick="showSection('top-teams')"
+                class="dropdown-item"
+                href="#"
                 >Top teams</a
               >
-              <a onclick="showTopVips()" class="dropdown-item" href="#"
+              <a
+                onclick="showSection('top-vips')"
+                class="dropdown-item"
+                href="#"
                 >Top vips</a
               >
-              <a onclick="showTopModerators()" class="dropdown-item" href="#"
+              <a
+                onclick="showSection('top-moderators')"
+                class="dropdown-item"
+                href="#"
                 >Top moderators</a
               >
             </div>
@@ -82,6 +101,7 @@
         </ul>
       </div>
     </nav>
+
     <!--CARDS SECTION-->
     <div class="row">
       <!--TOP STREAMERS-->
@@ -108,7 +128,7 @@
               <br />
               <a
                 href="#"
-                class="btn btn-outline-primary"
+                class="btn btn-outline-dark"
                 tabindex="-1"
                 role="button"
                 aria-disabled="true"
@@ -117,7 +137,7 @@
               >
               <a
                 href="#"
-                class="btn btn-outline-primary"
+                class="btn btn-outline-dark"
                 tabindex="-1"
                 role="button"
                 aria-disabled="true"
@@ -151,7 +171,7 @@
               <br />
               <a
                 href="#"
-                class="btn btn-outline-primary"
+                class="btn btn-outline-dark"
                 tabindex="-1"
                 role="button"
                 aria-disabled="true"
@@ -186,7 +206,7 @@
               <br />
               <a
                 href="#"
-                class="btn btn-outline-primary"
+                class="btn btn-outline-dark"
                 tabindex="-1"
                 role="button"
                 aria-disabled="true"
@@ -220,7 +240,7 @@
               <br />
               <a
                 href="#"
-                class="btn btn-outline-primary"
+                class="btn btn-outline-dark"
                 tabindex="-1"
                 role="button"
                 aria-disabled="true"
@@ -254,7 +274,7 @@
               <br />
               <a
                 href="#"
-                class="btn btn-outline-primary"
+                class="btn btn-outline-dark"
                 tabindex="-1"
                 role="button"
                 aria-disabled="true"

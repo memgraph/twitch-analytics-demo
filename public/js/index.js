@@ -9,18 +9,13 @@ var xmlhttp = new XMLHttpRequest();
 load_data();
 
 function load_data() {
-  document.getElementById("top-games").style.display = "none";
-  document.getElementById("top-teams").style.display = "none";
-  document.getElementById("top-streamers").style.display = "none";
-  document.getElementById("top-vips").style.display = "none";
-  document.getElementById("results_table").style.display = "none";
-  document.getElementById("top-moderators").style.display = "none";
+  showSection("about-section");
   xmlhttp.open("GET", "/load-data", true);
   xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
 
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
-      get_graph();
+      //get_graph();
       console.log("LOAD DATA SUCCESS!");
     }
   };
@@ -293,52 +288,21 @@ window.onclick = function (event) {
   }
 };
 
-function showTopStreamers() {
-  document.getElementById("results_table").style.display = "none";
-  document.getElementById("graph").style.display = "none";
-  document.getElementById("top-games").style.display = "none";
-  document.getElementById("top-teams").style.display = "none";
-  document.getElementById("top-streamers").style.display = "inline";
-  document.getElementById("top-vips").style.display = "none";
-  document.getElementById("top-moderators").style.display = "none";
-}
-
-function showTopGames() {
-  document.getElementById("results_table").style.display = "none";
-  document.getElementById("graph").style.display = "none";
-  document.getElementById("top-games").style.display = "inline";
-  document.getElementById("top-teams").style.display = "none";
-  document.getElementById("top-streamers").style.display = "none";
-  document.getElementById("top-vips").style.display = "none";
-  document.getElementById("top-moderators").style.display = "none";
-}
-
-function showTopTeams() {
-  document.getElementById("results_table").style.display = "none";
-  document.getElementById("graph").style.display = "none";
-  document.getElementById("top-games").style.display = "none";
-  document.getElementById("top-teams").style.display = "inline";
-  document.getElementById("top-streamers").style.display = "none";
-  document.getElementById("top-vips").style.display = "none";
-  document.getElementById("top-moderators").style.display = "none";
-}
-
-function showTopVips() {
-  document.getElementById("results_table").style.display = "none";
-  document.getElementById("graph").style.display = "none";
-  document.getElementById("top-games").style.display = "none";
-  document.getElementById("top-teams").style.display = "none";
-  document.getElementById("top-streamers").style.display = "none";
-  document.getElementById("top-vips").style.display = "inline";
-  document.getElementById("top-moderators").style.display = "none";
-}
-
-function showTopModerators() {
-  document.getElementById("results_table").style.display = "none";
-  document.getElementById("graph").style.display = "none";
-  document.getElementById("top-games").style.display = "none";
-  document.getElementById("top-teams").style.display = "none";
-  document.getElementById("top-streamers").style.display = "none";
-  document.getElementById("top-vips").style.display = "none";
-  document.getElementById("top-moderators").style.display = "inline";
+function showSection(section) {
+  var sections = [
+    "results_table",
+    "graph",
+    "top-games",
+    "top-teams",
+    "top-streamers",
+    "top-vips",
+    "top-moderators",
+    "about-section",
+  ];
+  var filtered = sections.filter(function (value, index, arr) {
+    return value !== section;
+  });
+  for (var i = 0; i < filtered.length; i++)
+    document.getElementById(filtered[i]).style.display = "none";
+  document.getElementById(section).style.display = "inline";
 }

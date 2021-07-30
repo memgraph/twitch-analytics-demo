@@ -154,8 +154,6 @@ def load_data():
 @app.route("/get-graph", methods=["GET"])
 @log_time
 def get_data():
-    """Load everything from the database."""
-
     try: 
         results = (
             Match()
@@ -433,6 +431,58 @@ def get_top_moderators(num_of_moderators):
         log.info("Fetching top teams went wrong.")
         log.info(e)
         return ("", 500) 
+
+
+
+
+@app.route("/get-streamer/<streamer_name>", methods=["GET"])
+@log_time
+def get_streamer(streamer_name):
+    """Get info about streamer whose name is streamer_name."""
+
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH (u:User {name:'""" + str(streamer_name) + """'})-[r]->(n) 
+            RETURN u,r,n;"""
+        )
+
+        links_set = set()
+        nodes_set = set()
+
+        for result in results:
+            source_id = result['u'].properties['id']
+            source_name = result['u'].properties['name']
+            source_label = 'Stream' #list(result['u'].labels)[0] can be User or Stream
+
+            target_id = result['n'].properties['name']
+            target_name = result['n'].properties['name']
+            target_label = list(result['n'].labels)[0]
+
+            nodes_set.add((source_id, source_label, source_name)) 
+            nodes_set.add((target_id, target_label, target_name))
+
+            if (source_id, target_id) not in links_set and (
+                target_id,
+                source_id,  
+            ) not in links_set:
+                links_set.add((source_id, target_id))  
+
+        nodes = [
+            {"id": node_id, "label": node_label, "name": node_name}
+            for node_id, node_label, node_name in nodes_set
+        ]
+        links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
+
+        response = {"nodes": nodes, "links": links}
+        log.info("TU SAM")
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+ 
+    except Exception as e:
+        log.info("Data fetching went wrong.")
+        log.info(e)
+        return ("", 500) 
+
 
 @app.route("/", methods=["GET"])  
 def index():

@@ -1,8 +1,8 @@
 svg {
   border: 2px solid rgb(77, 77, 77);
   border-radius: 25px;
-  width: 1400px;
-  height: 600px;
+  width: 100%;
+  height: auto;
   padding-left: 0;
   padding-right: 0;
   margin-left: auto;
@@ -14,7 +14,6 @@ svg {
   position: absolute;
   text-align: center;
   display: inline-block;
-  padding: 2px;
   font: 12px sans-serif;
   background: #dda6d1;
   border: 0px;

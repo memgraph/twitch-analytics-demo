@@ -387,11 +387,35 @@
     </div>
 
     <!--GRAPH VISUALIZATION-->
-    <div id="graph" class="container-fluid" style="padding-top: 30px">
-      <div id="tooltip"></div>
-      <svg width="1400" height="600"></svg>
-    </div>
 
+    <div id="graph" class="container" style="padding-top: 30px">
+      <div class="row">
+        <div class="col-sm">
+          <div id="tooltip"></div>
+          <svg width="1400" height="600"></svg>
+        </div>
+        <div class="col-sm">
+          <form class="form-inline">
+            <div class="form-group mx-sm-3 mb-2">
+              <input
+                type="text"
+                class="form-control"
+                id="input-streamer"
+                placeholder="Streamer's name"
+              />
+              <a
+                onclick="get_streamer()"
+                id="find-streamer"
+                type="submit"
+                class="btn btn-primary mb-2"
+              >
+                Find streamer
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="js/index.js"></script>
   </body>

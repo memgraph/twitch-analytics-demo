@@ -150,21 +150,25 @@ def get_chatters():
 def make_streamers_csv():
     csv_input_1 = pd.read_csv('streams_2.csv')
     csv_input_2 = pd.read_csv('followers_2.csv')
+    csv_input_3 = pd.read_csv('users_2.csv')
     csv_input_1['followers'] = csv_input_2['followers']
+    csv_input_1['description'] = csv_input_3['description']
+    csv_input_1['view_count'] = csv_input_3['view_count']
+    csv_input_1['created_at'] = csv_input_3['created_at']
     csv_input_1.to_csv('streamers_2.csv', index=False)
 
 def main():
-    client = twitch.TwitchHelix(client_id='ll6iwaioden39cwoo0u3x4y3m89e3x', oauth_token='b6yf8utpreemxtjc3cu0gc318nsk5d')
-    p = multiprocessing.Process(target=get_streams, name="Get_streams", args=(client,))
-    p.start()
-    time.sleep(3) # num of streamers must be max 100 foreach user request
-    if p.is_alive():
-        p.terminate()
-        p.join()
-    get_users(client)
-    get_teams()
-    get_followers()
-    get_chatters()
+    # client = twitch.TwitchHelix(client_id='ll6iwaioden39cwoo0u3x4y3m89e3x', oauth_token='b6yf8utpreemxtjc3cu0gc318nsk5d')
+    # p = multiprocessing.Process(target=get_streams, name="Get_streams", args=(client,))
+    # p.start()
+    # time.sleep(3) # num of streamers must be max 100 foreach user request
+    # if p.is_alive():
+    #     p.terminate()
+    #     p.join()
+    # get_users(client)
+    # get_teams()
+    # get_followers()
+    # get_chatters()
     make_streamers_csv()
 
 if __name__ == "__main__":

@@ -89,15 +89,15 @@ def log_time(func):
 
 @log_time
 def load_twitch_data():
-        path_streams = Path("/usr/lib/memgraph/import-data/streams.csv")
-        path_teams = Path("/usr/lib/memgraph/import-data/teams.csv")
-        path_vips = Path("/usr/lib/memgraph/import-data/vips.csv")
-        path_moderators = Path("/usr/lib/memgraph/import-data/moderators.csv")
+        path_streams = Path("/usr/lib/memgraph/import-data/streamers_2.csv")
+        path_teams = Path("/usr/lib/memgraph/import-data/teams_2.csv")
+        path_vips = Path("/usr/lib/memgraph/import-data/vips_2.csv")
+        path_moderators = Path("/usr/lib/memgraph/import-data/moderators_2.csv")
 
         memgraph.execute_query(
             f"""LOAD CSV FROM "{path_streams}"
             WITH HEADER DELIMITER "," AS row
-            CREATE (u:User:Stream {{id: ToString(row.id), name: Tostring(row.name), followers: ToInteger(row.followers), createdAt: ToString(row.createdAt), totalViewCount: ToInteger(row.totalViewCount), description: ToString(row.description)}}) 
+            CREATE (u:User:Stream {{id: ToString(row.user_id), name: Tostring(row.user_name), url: ToString(row.thumbnail_url), followers: ToInteger(row.followers), createdAt: ToString(row.created_at), totalViewCount: ToInteger(row.view_count), description: ToString(row.description)}}) 
             MERGE (l:Language {{name: ToString(row.language)}})
             CREATE (u)-[:SPEAKS]->(l)
             MERGE (g:Game{{name: ToString(row.game_name)}})

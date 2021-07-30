@@ -15,7 +15,7 @@ with open('moderators_file.csv', 'w', encoding="utf-8") as m:
             for user_login in user_logins:
                 http_addr = "http://tmi.twitch.tv/group/user/" + user_login[1] + "/chatters" #user_login[1] is user_login
                 print(http_addr)
-                curl_command_line = '''curl -X GET ''' + http_addr + ''' -H "Authorization: Bearer b6yf8utpreemxtjc3cu0gc318nsk5d" -H "Client-Id: ll6iwaioden39cwoo0u3x4y3m89e3x"'''
+                curl_command_line = '''curl -X GET ''' + http_addr + '''token and id (secret)'''
                 args = shlex.split(curl_command_line)
                 data = json.loads(subprocess.run(args, capture_output=True, text=True).stdout)
                 # for every user fill three csvs - vips, moderators, viewers 

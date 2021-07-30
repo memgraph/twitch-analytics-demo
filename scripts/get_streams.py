@@ -1,7 +1,7 @@
 import twitch
 import csv
 
-client = twitch.TwitchHelix(client_id='ll6iwaioden39cwoo0u3x4y3m89e3x', oauth_token='b6yf8utpreemxtjc3cu0gc318nsk5d')
+client = twitch.TwitchHelix(clientid,token(secret))
 streams = client.get_streams()
 print(len(streams))
 

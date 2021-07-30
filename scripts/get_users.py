@@ -2,7 +2,7 @@ import twitch
 import pandas as pd
 import csv
 
-client = twitch.TwitchHelix(client_id='ll6iwaioden39cwoo0u3x4y3m89e3x', oauth_token='b6yf8utpreemxtjc3cu0gc318nsk5d')
+client = twitch.TwitchHelix(token secret)
 col_list = ["user_id"]
 df = pd.read_csv("streams_file.csv", usecols = col_list)
 user_ids = df.values.tolist()

@@ -20,7 +20,9 @@
     <title>Twitch Analytics Demo</title>
   </head>
   <body>
-    <button onclick="topFunction()" id="myBtn" title="Go to top">Top</button>
+    <button onclick="topFunction()" id="toTopButton" title="Go to top">
+      Top
+    </button>
     <!--LOGO-->
     <div id="header" class="container-fluid mx-0 px-0">
       <div class="hey d-flex justify-content-center align-items-center">
@@ -387,7 +389,6 @@
     </div>
 
     <!--GRAPH VISUALIZATION-->
-
     <div id="graph" class="container" style="padding-top: 30px">
       <div class="row">
         <div class="col-sm">
@@ -411,8 +412,71 @@
               >
                 Find streamer
               </a>
+              <br />
+              <a
+                onclick="get_languages()"
+                id="get-languages"
+                type="submit"
+                class="btn btn-primary mb-2"
+              >
+                Get languages
+              </a>
+              <select
+                id="language-select"
+                class="form-select"
+                aria-label="Default select example"
+              >
+                <option selected>Select language</option>
+                <option value="ja">ja</option>
+                <option value="ru">ru</option>
+                <option value="de">de</option>
+                <option value="fr">fr</option>
+                <option value="zh">zh</option>
+                <option value="ko">ko</option>
+                <option value="en">en</option>
+                <option value="pt">pt</option>
+              </select>
+              <select
+                id="game-select"
+                class="form-select"
+                aria-label="Default select example"
+              >
+                <option selected>Select game</option>
+                <option value="League of Legends">League of Legends</option>
+                <option value="Gartic Phone">Gartic Phone</option>
+                <option value="Slots">Slots</option>
+                <option value="TrackMania">TrackMania</option>
+                <option value="Sports">Sports</option>
+                <option value="New World">New World</option>
+                <option value="Minecraft">Minecraft</option>
+                <option value="Escape from Tarkov">Escape from Tarkov</option>
+                <option value="Grand Theft Auto V">Grand Theft Auto V</option>
+                <option value="Final Fantasy VII Remake">
+                  Final Fantasy VII Remake
+                </option>
+                <option value="Fortnite">Fortnite</option>
+                <option value="Just Chatting">Just Chatting</option>
+                <option value="VALORANT">VALORANT</option>
+                <option value="Final Fantasy XIV Online">
+                  Final Fantasy XIV Online
+                </option>
+                <option value="Apex Legends">Apex Legends</option>
+                <option value="Metal Gear Solid">Metal Gear Solid</option>
+                <option value="Dota 2">Dota 2</option>
+                <option value="LOST ARK">LOST ARK</option>
+                <option value="Cuphead">Cuphead</option>
+              </select>
+              <a
+                onclick="get_streamers()"
+                id="find-streamers"
+                type="submit"
+                class="btn btn-primary mb-2"
+              >
+                Find streamers
+              </a>
             </div>
           </form>
+          <p id="streamer-info"></p>
         </div>
       </div>
     </div>

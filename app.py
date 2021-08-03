@@ -94,6 +94,8 @@ def load_twitch_data():
         path_vips = Path("/usr/lib/memgraph/import-data/vips_2.csv")
         path_moderators = Path("/usr/lib/memgraph/import-data/moderators_2.csv")
 
+
+        # maybe memgraph.execute() in new gqlalchemy
         memgraph.execute_query(
             f"""LOAD CSV FROM "{path_streams}"
             WITH HEADER DELIMITER "," AS row
@@ -439,49 +441,159 @@ def get_top_moderators(num_of_moderators):
 @log_time
 def get_streamer(streamer_name):
     """Get info about streamer whose name is streamer_name."""
-
+    is_streamer = True
     try:
-        results = memgraph.execute_and_fetch(
-            """MATCH (u:User {name:'""" + str(streamer_name) + """'})-[r]->(n) 
-            RETURN u,r,n;"""
+        # Check whether streamer with the given name exists
+        counters = memgraph.execute_and_fetch(
+            """MATCH (u:User {name:'""" + str(streamer_name) + """'})
+            RETURN COUNT(u) AS name_counter;"""
         )
 
-        links_set = set()
-        nodes_set = set()
+        for counter in counters:
+            if(counter['name_counter'] == 0):
+                is_streamer = False
 
-        for result in results:
-            source_id = result['u'].properties['id']
-            source_name = result['u'].properties['name']
-            source_label = 'Stream' #list(result['u'].labels)[0] can be User or Stream
+        # If the streamer exists, return its relationships
+        if(is_streamer):
+            results = memgraph.execute_and_fetch(
+                """MATCH (u:User {name:'""" + str(streamer_name) + """'})-[]->(n) 
+                RETURN u,n;"""
+            )
 
-            target_id = result['n'].properties['name']
-            target_name = result['n'].properties['name']
-            target_label = list(result['n'].labels)[0]
+            links_set = set()
+            nodes_set = set()
 
-            nodes_set.add((source_id, source_label, source_name)) 
-            nodes_set.add((target_id, target_label, target_name))
+            for result in results:
+                source_id = result['u'].properties['id']
+                source_name = result['u'].properties['name']
+                source_label = 'Stream' #list(result['u'].labels)[0] can be User or Stream
 
-            if (source_id, target_id) not in links_set and (
-                target_id,
-                source_id,  
-            ) not in links_set:
-                links_set.add((source_id, target_id))  
+                target_id = result['n'].properties['name']
+                target_name = result['n'].properties['name']
+                target_label = list(result['n'].labels)[0]
 
-        nodes = [
-            {"id": node_id, "label": node_label, "name": node_name}
-            for node_id, node_label, node_name in nodes_set
-        ]
-        links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
+                nodes_set.add((source_id, source_label, source_name)) 
+                nodes_set.add((target_id, target_label, target_name))
+
+                if (source_id, target_id) not in links_set and (
+                    target_id,
+                    source_id,  
+                ) not in links_set:
+                    links_set.add((source_id, target_id))  
+
+            nodes = [
+                {"id": node_id, "label": node_label, "name": node_name}
+                for node_id, node_label, node_name in nodes_set
+            ]
+            links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
+        # If the streamer doesn't exist, return empty response
+        else:
+            nodes = []
+            links = []
 
         response = {"nodes": nodes, "links": links}
-        log.info("TU SAM")
         return Response(json.dumps(response), status=200, mimetype="application/json")
+
 
  
     except Exception as e:
         log.info("Data fetching went wrong.")
         log.info(e)
         return ("", 500) 
+
+
+@app.route("/get-languages", methods=["GET"])
+@log_time
+def get_languages():
+    """Get all language nodes."""
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH(u:Stream)-[]->(l:Language)
+                RETURN l AS language, COUNT(u) AS user_count;"""
+        )
+
+        nodes_set = set()
+
+        for result in results:
+            source_name = result['language'].properties['name']
+            source_label = 'Language' #list(result['u'].labels)[0] can be User or Stream
+            user_count = result['user_count']
+
+            nodes_set.add((source_label, source_name, user_count)) 
+
+        nodes = [
+            {"label": node_label, "name": node_name, "num_of_users": node_count}
+            for node_label, node_name, node_count in nodes_set
+        ]
+        links = []
+
+
+        response = {"nodes": nodes, "links": links}
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Data fetching went wrong.")
+        log.info(e)
+        return ("", 500) 
+
+
+@app.route("/get-streamers/<language>/<game>", methods=["GET"])
+@log_time
+def get_streamers(language, game):
+    """Get all streamers who stream certain game in certain language."""
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH(u:Stream)-[:SPEAKS]->(l:Language {name:'""" + str(language) + """'})
+            MATCH (u)-[:PLAYS]->(g:Game {name:'""" + str(game) + """'})
+            RETURN u,g,l;"""
+        )
+
+        nodes_set = set()
+        links_set = set()
+
+        for result in results:
+            source_id = result['u'].properties['id']
+            source_name = result['u'].properties['name']
+            source_label = 'Stream'
+
+            target_1_id = result['g'].properties['name']
+            target_1_name = result['g'].properties['name']
+            target_1_label = 'Game'
+
+            target_2_id = result['l'].properties['name']
+            target_2_name = result['l'].properties['name']
+            target_2_label = 'Language'
+
+            nodes_set.add((source_id, source_name, source_label))             
+            nodes_set.add((target_1_id, target_1_name, target_1_label)) 
+            nodes_set.add((target_2_id, target_2_name, target_2_label)) 
+
+            if (source_id, target_1_id) not in links_set and (
+                    target_1_id,
+                    source_id,  
+                ) not in links_set:
+                    links_set.add((source_id, target_1_id))  
+            if (source_id, target_2_id) not in links_set and (
+                    target_2_id,
+                    source_id,  
+                ) not in links_set:
+                    links_set.add((source_id, target_2_id))  
+
+
+        nodes = [
+            {"id": node_id, "name": node_name, "label": node_label}
+            for node_id, node_name, node_label in nodes_set
+        ]
+        links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
+
+        response = {"nodes": nodes, "links": links}
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Data fetching went wrong.")
+        log.info(e)
+        return ("", 500) 
+
 
 
 @app.route("/", methods=["GET"])  

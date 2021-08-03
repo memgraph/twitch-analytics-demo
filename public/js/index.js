@@ -6,7 +6,7 @@ const width = svg.attr("width");
 const height = svg.attr("height");
 var xmlhttp = new XMLHttpRequest();
 //Get the button
-var mybutton = document.getElementById("myBtn");
+var toTopButton = document.getElementById("toTopButton");
 
 // When the user scrolls down 20px from the top of the document, show the button
 window.onscroll = function () {
@@ -140,7 +140,28 @@ function get_streamer() {
       data = JSON.parse(xmlhttp.responseText);
       links = data.links;
       nodes = data.nodes;
+      streamer_info = document.getElementById("streamer-info");
 
+      if (nodes.length !== 0) {
+        streamer_info.innerHTML = "";
+        draw_graph(links, nodes);
+      } else {
+        streamer_info.innerHTML = "User with that name does not exist.";
+      }
+    }
+  };
+  xmlhttp.send();
+}
+
+function get_languages() {
+  svg.selectAll("*").remove();
+  xmlhttp.open("GET", "/get-languages", true);
+  xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
+      data = JSON.parse(xmlhttp.responseText);
+      links = data.links;
+      nodes = data.nodes;
       const simulation = d3
         .forceSimulation(nodes)
         .force(
@@ -151,15 +172,8 @@ function get_streamer() {
             .id((d) => d.id)
         )
         .force("charge", d3.forceManyBody())
-        .force("center", d3.forceCenter(width / 3, height / 3));
-      const link = svg
-        .append("g")
-        .attr("stroke", "#999")
-        .attr("stroke-opacity", 0.6)
-        .selectAll("line")
-        .data(links)
-        .join("line")
-        .attr("stroke-width", 1);
+        .force("center", d3.forceCenter(width / 4, height / 4));
+
       var div = d3.select("#tooltip");
       const node = svg
         .append("g")
@@ -168,7 +182,10 @@ function get_streamer() {
         .selectAll("circle")
         .data(nodes)
         .join("circle")
-        .attr("r", 10)
+        .attr("r", function (d) {
+          if (d.num_of_users < 10) return 10;
+          else return d.num_of_users;
+        })
         .attr("class", "node")
         .attr("fill", function (d) {
           if (d.label === "Team") return "red";
@@ -179,7 +196,16 @@ function get_streamer() {
         .on("mouseover", function (event, d) {
           div.transition().duration(200).style("opacity", 0.9);
           div
-            .html("label: " + d.label + "<br>" + "name: " + d.name)
+            .html(
+              "label: " +
+                d.label +
+                "<br>" +
+                "name: " +
+                d.name +
+                "<br>" +
+                "users: " +
+                d.num_of_users
+            )
             .style("left", event.pageX + 25 + "px")
             .style("top", event.pageY - 25 + "px")
             .style("padding", "10px");
@@ -203,21 +229,35 @@ function get_streamer() {
         .style("font-size", "12px");
 
       simulation.on("tick", () => {
-        link
-          .attr("x1", (d) => d.source.x)
-          .attr("y1", (d) => d.source.y)
-          .attr("x2", (d) => d.target.x)
-          .attr("y2", (d) => d.target.y);
-
         node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
         label
           .attr("x", function (d) {
             return d.x;
           })
           .attr("y", function (d) {
-            return d.y - 10;
+            if (d.num_of_users < 10) return d.y - 10;
+            else return d.y - d.num_of_users;
           });
       });
+    }
+  };
+  xmlhttp.send();
+}
+
+function get_streamers() {
+  svg.selectAll("*").remove();
+  var language = document.getElementById("language-select").value;
+  var game = document.getElementById("game-select").value;
+  xmlhttp.open("GET", "/get-streamers/" + language + "/" + game, true);
+  xmlhttp.setRequestHeader("Content-type", "application/json; charset=utf-8");
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == "200") {
+      data = JSON.parse(xmlhttp.responseText);
+      links = data.links;
+      nodes = data.nodes;
+      streamer_info = document.getElementById("streamer-info");
+      streamer_info.innerHTML = "";
+      draw_graph(links, nodes);
     }
   };
   xmlhttp.send();
@@ -278,6 +318,87 @@ function get_top_moderators() {
     }
   };
   xmlhttp.send();
+}
+
+function draw_graph(links, nodes) {
+  const simulation = d3
+    .forceSimulation(nodes)
+    .force(
+      "link",
+      d3
+        .forceLink(links)
+        .distance(100)
+        .id((d) => d.id)
+    )
+    .force("charge", d3.forceManyBody())
+    .force("center", d3.forceCenter(width / 3, height / 3));
+  const link = svg
+    .append("g")
+    .attr("stroke", "#999")
+    .attr("stroke-opacity", 0.6)
+    .selectAll("line")
+    .data(links)
+    .join("line")
+    .attr("stroke-width", 1);
+
+  var div = d3.select("#tooltip");
+  const node = svg
+    .append("g")
+    .attr("stroke", "#fff")
+    .attr("stroke-width", 1.5)
+    .selectAll("circle")
+    .data(nodes)
+    .join("circle")
+    .attr("r", 10)
+    .attr("class", "node")
+    .attr("fill", function (d) {
+      if (d.label === "Team") return "red";
+      else if (d.label === "Stream") return "orange";
+      else if (d.label === "Game") return "blue";
+      else if (d.label === "Language") return "purple";
+    })
+    .on("mouseover", function (event, d) {
+      div.transition().duration(200).style("opacity", 0.9);
+      div
+        .html("label: " + d.label + "<br>" + "name: " + d.name)
+        .style("left", event.pageX + 25 + "px")
+        .style("top", event.pageY - 25 + "px")
+        .style("padding", "10px");
+    })
+    .on("mouseout", function (event, d) {
+      div.transition().duration(500).style("opacity", 0);
+    })
+    .call(drag(simulation));
+
+  var label = svg
+    .selectAll(null)
+    .data(nodes)
+    .enter()
+    .append("text")
+    .text(function (d) {
+      return d.name; //return d.label for label
+    })
+    .style("text-anchor", "middle")
+    .style("fill", "#555")
+    .style("font-family", "Arial")
+    .style("font-size", "12px");
+
+  simulation.on("tick", () => {
+    link
+      .attr("x1", (d) => d.source.x)
+      .attr("y1", (d) => d.source.y)
+      .attr("x2", (d) => d.target.x)
+      .attr("y2", (d) => d.target.y);
+
+    node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+    label
+      .attr("x", function (d) {
+        return d.x;
+      })
+      .attr("y", function (d) {
+        return d.y - 10;
+      });
+  });
 }
 
 function get_graph() {
@@ -439,9 +560,9 @@ function showSection(section) {
 
 function scrollFunction() {
   if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-    mybutton.style.display = "block";
+    toTopButton.style.display = "block";
   } else {
-    mybutton.style.display = "none";
+    toTopButton.style.display = "none";
   }
 }
 

@@ -40,7 +40,7 @@ svg {
   color: #ff0008;
 }
 
-#myBtn {
+#toTopButton {
   display: none;
   position: fixed;
   bottom: 20px;
@@ -56,6 +56,6 @@ svg {
   border-radius: 4px;
 }
 
-#myBtn:hover {
+#toTopButton:hover {
   background-color: #9ba09c;
 }

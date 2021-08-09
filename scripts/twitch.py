@@ -6,6 +6,9 @@ import subprocess
 import json
 import multiprocessing
 import time
+import collections
+import itertools
+import math
 
 def get_streams(client):
     streams = client.get_streams()
@@ -157,6 +160,49 @@ def make_streamers_csv():
     csv_input_1['created_at'] = csv_input_3['created_at']
     csv_input_1.to_csv('streamers_2.csv', index=False)
 
+def count_by_id():
+    with open("chatters_2.csv", encoding="utf-8", newline='') as csvfile:
+        counter = collections.Counter(row["user_id"] for row in csv.DictReader(csvfile))
+
+    with open("num_of_chatters.csv", "w", encoding="utf-8", newline='') as outfile:
+        writer = csv.writer(outfile)
+        writer.writerow(("user_id", "num_of_chatters"))
+        for id, count in counter.items():
+            writer.writerow((id, count))   
+
+def copy_rows():
+    
+    file_in = 'chatters_2.csv'
+    file_out = 'new_chatters.csv'
+
+    col_list = ["num_of_chatters"]
+    df = pd.read_csv("num_of_chatters.csv", usecols = col_list)
+    num_of_chatters = df.values.tolist()
+    with open(file_in, "r", encoding="utf-8", newline='') as f_input, \
+        open(file_out, "w", encoding="utf-8", newline='') as f_output:
+        # write header
+        line = f_input.readline()
+        f_output.write(line)
+        for count in num_of_chatters:
+            start = 1
+            ten_percent = math.floor(count[0] / 10)
+            line = f_input.readline()
+            # append ten percent of chatters for that streamer
+            while start != ten_percent :
+                f_output.write(line)
+                print("writing line")
+                start += 1
+                print(start)
+                line = f_input.readline()
+            # read chatters for that streamer
+            while start != count[0]:
+                print("reading line")
+                line = f_input.readline()
+                start += 1
+                print(start)
+
+
+
 def main():
     # client = twitch.TwitchHelix(client_id='ll6iwaioden39cwoo0u3x4y3m89e3x', oauth_token='b6yf8utpreemxtjc3cu0gc318nsk5d')
     # p = multiprocessing.Process(target=get_streams, name="Get_streams", args=(client,))
@@ -169,7 +215,9 @@ def main():
     # get_teams()
     # get_followers()
     # get_chatters()
-    make_streamers_csv()
+    # make_streamers_csv()
+    # count_by_id()
+    copy_rows()
 
 if __name__ == "__main__":
     main()

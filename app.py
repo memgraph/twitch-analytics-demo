@@ -93,9 +93,11 @@ def load_twitch_data():
         path_teams = Path("/usr/lib/memgraph/import-data/teams_2.csv")
         path_vips = Path("/usr/lib/memgraph/import-data/vips_2.csv")
         path_moderators = Path("/usr/lib/memgraph/import-data/moderators_2.csv")
+        path_chatters = Path("/usr/lib/memgraph/import-data/new_chatters.csv")
 
 
         # maybe memgraph.execute() in new gqlalchemy
+
         memgraph.execute_query(
             f"""LOAD CSV FROM "{path_streams}"
             WITH HEADER DELIMITER "," AS row
@@ -104,6 +106,14 @@ def load_twitch_data():
             CREATE (u)-[:SPEAKS]->(l)
             MERGE (g:Game{{name: ToString(row.game_name)}})
             CREATE (u)-[:PLAYS]->(g);"""
+        )
+
+        memgraph.execute_query(
+            f"""CREATE INDEX ON :User(id);"""
+        )
+
+        memgraph.execute_query(
+            f"""CREATE INDEX ON :User(name);"""
         )
 
         memgraph.execute_query(
@@ -131,6 +141,14 @@ def load_twitch_data():
             WHERE s.id = toString(row.user_id)
             MERGE(m:User {{name: toString(row.moderator_login)}})
             CREATE (m)-[:MODERATOR]->(s);"""
+        )
+
+        memgraph.execute_query(
+            f"""LOAD CSV FROM "{path_chatters}"
+            WITH HEADER DELIMITER "," AS row
+            MATCH (s:User {{id: row.user_id}})
+            MERGE (c:User {{name: row.chatter_login}})
+            CREATE (c)-[:CHATTER]->(s);"""
         )
 
 @app.route("/load-data", methods=["GET"])

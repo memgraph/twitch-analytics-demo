@@ -151,7 +151,7 @@ def load_twitch_data():
             CREATE (c)-[:CHATTER]->(s);"""
         )
 
-
+# BadBoyHalo has highest bc and pagerank
 @app.route("/get-page-rank", methods=["GET"])
 @log_time
 def get_page_rank():
@@ -195,7 +195,6 @@ def get_wcc():
         )
         components_set = set()
         wcc_list = list()
-        users_list = list()
         wcc_dict = dict()
         for result in results: # tried only with Streams, still only one component
             if "Stream" in list(result["node"].labels):
@@ -214,6 +213,35 @@ def get_wcc():
         log.info(e)
         return ("", 500) 
 
+# BadBoyHalo has highest bc and pagerank
+@app.route("/get-bc", methods=["GET"])
+@log_time
+def get_bc():
+    """Call the Betweenness centrality procedure and return the results."""
+    try:
+        results = memgraph.execute_and_fetch(
+            """CALL betweenness_centrality.get()
+            YIELD node, betweeenness_centrality;"""
+        )
+
+        bc_dict = dict()
+        bc_list = list()
+        for result in results:
+            if(list(result["node"].labels)[0] == "User" or list(result["node"].labels)[0] == "Stream"):
+                user_name = result["node"].properties["name"]
+                bc = float(result["betweeenness_centrality"])
+                bc_dict = {"name": user_name, "betweenness_centrality": bc}
+                dict_copy = bc_dict.copy()
+                bc_list.append(dict_copy)
+        sorted_list = sorted(bc_list, key = lambda i: i['betweenness_centrality'], reverse=True) 
+        response = {"bc" : sorted_list}
+
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching betweenness centrality went wrong.")
+        log.info(e)
+        return ("", 500) 
 
 @app.route("/load-data", methods=["GET"])
 @log_time

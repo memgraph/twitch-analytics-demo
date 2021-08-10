@@ -155,7 +155,7 @@ def load_twitch_data():
 @app.route("/get-page-rank", methods=["GET"])
 @log_time
 def get_page_rank():
-    """Call the Page rank procedure and store the results."""
+    """Call the Page rank procedure and return the results."""
 
     try:
         results = memgraph.execute_and_fetch(
@@ -181,6 +181,39 @@ def get_page_rank():
         log.info("Fetching users' ranks using pagerank went wrong.")
         log.info(e)
         return ("", 500) 
+
+
+# returning one component due to the whole graph
+@app.route("/get-wcc", methods=["GET"])
+@log_time
+def get_wcc():
+    """Call the Weakly connected componenents procedure and return the results."""
+    try:
+        results = memgraph.execute_and_fetch(
+            """CALL weakly_connected_components.get()
+            YIELD node, component_id;"""
+        )
+        components_set = set()
+        wcc_list = list()
+        users_list = list()
+        wcc_dict = dict()
+        for result in results: # tried only with Streams, still only one component
+            if "Stream" in list(result["node"].labels):
+                user_name = result["node"].properties["name"]
+                component = int(result["component_id"])
+                components_set.add(component)
+                wcc_dict = {"name" : user_name, "component" : component}
+                dict_copy = wcc_dict.copy()
+                wcc_list.append(dict_copy)
+        log.info("Num of components")
+        log.info(len(components_set))
+        response = {"components": wcc_list}
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+    except Exception as e:
+        log.info("Fetching weakly connected components went wrong.")
+        log.info(e)
+        return ("", 500) 
+
 
 @app.route("/load-data", methods=["GET"])
 @log_time

@@ -151,6 +151,37 @@ def load_twitch_data():
             CREATE (c)-[:CHATTER]->(s);"""
         )
 
+
+@app.route("/get-page-rank", methods=["GET"])
+@log_time
+def get_page_rank():
+    """Call the Page rank procedure and store the results."""
+
+    try:
+        results = memgraph.execute_and_fetch(
+            """CALL pagerank.get()
+            YIELD node, rank; """
+        )
+
+        page_rank_dict = dict()
+        page_rank_list = list()
+        for result in results:
+            if(list(result["node"].labels)[0] == "User" or list(result["node"].labels)[0] == "Stream"):
+                user_name = result["node"].properties["name"]
+                rank = float(result["rank"])
+                page_rank_dict = {"name": user_name, "rank": rank}
+                dict_copy = page_rank_dict.copy()
+                page_rank_list.append(dict_copy)
+        sorted_list = sorted(page_rank_list, key = lambda i: i['rank'], reverse=True) 
+        response = {"page_rank" : sorted_list}
+
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching users' ranks using pagerank went wrong.")
+        log.info(e)
+        return ("", 500) 
+
 @app.route("/load-data", methods=["GET"])
 @log_time
 def load_data():

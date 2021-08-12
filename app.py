@@ -425,7 +425,6 @@ def get_top_games(num_of_games):
         return ("", 500) 
 
 
-
 @app.route("/get-top-teams/<num_of_teams>", methods=["GET"])
 @log_time
 def get_top_teams(num_of_teams):
@@ -464,8 +463,6 @@ def get_top_teams(num_of_teams):
         log.info(e)
         return ("", 500) 
  
-
-
 
 @app.route("/get-top-vips/<num_of_vips>", methods=["GET"])
 @log_time
@@ -543,8 +540,6 @@ def get_top_moderators(num_of_moderators):
         log.info("Fetching top teams went wrong.")
         log.info(e)
         return ("", 500) 
-
-
 
 
 @app.route("/get-streamer/<streamer_name>", methods=["GET"])
@@ -703,7 +698,6 @@ def get_streamers(language, game):
         log.info("Data fetching went wrong.")
         log.info(e)
         return ("", 500) 
-
 
 
 @app.route("/", methods=["GET"])  

@@ -38,11 +38,11 @@ function TwitchHeading() {
 
 class HeaderComp extends Component {
   state = {};
-
   hideFixedMenu = () => this.setState({ fixed: false });
   showFixedMenu = () => this.setState({ fixed: true });
   render() {
     const { fixed } = this.state;
+
     return (
       <Visibility
         once={false}

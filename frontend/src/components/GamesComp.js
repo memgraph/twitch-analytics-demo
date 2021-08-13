@@ -22,7 +22,6 @@ class GamesComp extends Component {
             games: result.games,
             players: result.players,
           });
-          console.log(result);
         },
         (error) => {
           this.setState({

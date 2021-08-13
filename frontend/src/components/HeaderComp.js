@@ -6,6 +6,7 @@ import {
   Segment,
   Visibility,
   Header,
+  Icon,
 } from "semantic-ui-react";
 
 function TwitchHeading() {
@@ -32,6 +33,10 @@ function TwitchHeading() {
           marginTop: "1.5em",
         }}
       />
+      <button class="huge ui orange basic inverted button">
+        Graph visualization
+        <Icon name="right arrow" />
+      </button>
     </Container>
   );
 }
@@ -52,7 +57,7 @@ class HeaderComp extends Component {
         <Segment
           inverted
           textAlign="center"
-          style={{ minHeight: 500, padding: "1em 0em" }}
+          style={{ minHeight: 700, padding: "1em 0em" }}
           vertical
         >
           <Menu

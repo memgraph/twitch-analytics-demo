@@ -6,6 +6,8 @@ import HeaderComp from "./components/HeaderComp";
 import GamesComp from "./components/GamesComp";
 import TeamsComp from "./components/TeamsComp";
 import VipsComp from "./components/VipsComp";
+import ModeratorsComp from "./components/ModeratorsComp";
+import StreamersComp from "./components/StreamersComp";
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
       <GamesComp />
       <TeamsComp />
       <VipsComp />
+      <ModeratorsComp />
+      <StreamersComp />
     </div>
   );
 }

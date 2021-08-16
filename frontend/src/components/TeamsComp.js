@@ -17,8 +17,8 @@ class TeamsComp extends Component {
     };
   }
 
-  fetchData() {
-    fetch("/get-top-teams/" + this.state.numOfTeams)
+  fetchData(number) {
+    fetch("/get-top-teams/" + number)
       .then((res) => res.json())
       .then(
         (result) => {
@@ -35,21 +35,18 @@ class TeamsComp extends Component {
           });
         }
       );
+    this.setState({
+      numOfTeams: number,
+      header: "Top " + number + " teams",
+    });
   }
 
   componentDidMount() {
-    this.fetchData();
-  }
-
-  componentDidUpdate() {
-    this.fetchData();
+    this.fetchData(this.state.numOfTeams);
   }
 
   updateNumOfTeams = (num) => {
-    this.setState({
-      numOfTeams: num.value,
-      header: "Top " + num.value + " teams",
-    });
+    this.fetchData(num.value);
   };
 
   render() {
@@ -69,7 +66,10 @@ class TeamsComp extends Component {
               <Grid.Column width={8}>
                 <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
                 <br></br>
-                <DropdownComp updateStateParent={this.updateNumOfTeams} />
+                <DropdownComp
+                  updateStateParent={this.updateNumOfTeams}
+                  placeHolder="Number of teams"
+                />
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp

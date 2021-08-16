@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import { Grid, Segment } from "semantic-ui-react";
+import DropdownComp from "./DropdownComp";
 import LeftColumn from "./LeftColumn";
+import TableComp from "./TableComp";
 
 class ModeratorsComp extends Component {
   constructor(props) {
@@ -10,11 +12,13 @@ class ModeratorsComp extends Component {
       isLoaded: false,
       moderators: [],
       streamers: [],
+      numOfMods: "10",
+      header: "Top 10 moderators",
     };
   }
 
-  componentDidMount() {
-    fetch("/get-top-moderators/10")
+  fetchData(number) {
+    fetch("/get-top-moderators/" + number)
       .then((res) => res.json())
       .then(
         (result) => {
@@ -31,24 +35,25 @@ class ModeratorsComp extends Component {
           });
         }
       );
-  }
-
-  renderRows() {
-    return Object.keys(this.state.moderators).map((moderator, id) => {
-      return (
-        <tr>
-          <td>{this.state.moderators[id]["name"]}</td>
-          <td>{this.state.streamers[id]["streamers"]}</td>
-        </tr>
-      );
+    this.setState({
+      numOfMods: number,
+      header: "Top " + number + " moderators",
     });
   }
 
+  componentDidMount() {
+    this.fetchData(this.state.numOfMods);
+  }
+
+  updateNumOfMods = (num) => {
+    this.fetchData(num.value);
+  };
+
   render() {
-    const { error, isLoaded, moderators, streamers } = this.state;
-    const header = "Top moderators";
+    const { error, isLoaded, header } = this.state;
+    const headers = ["Moderator", "Number of channels"];
     const paragraph =
-      "Find out which user is the most popular channel moderator.";
+      "Find out which user is the most popular channel moderator. Choose a number of top moderators you would like to see:";
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
@@ -60,17 +65,20 @@ class ModeratorsComp extends Component {
             <Grid.Row>
               <Grid.Column width={8}>
                 <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
+                <br></br>
+                <DropdownComp
+                  updateStateParent={this.updateNumOfMods}
+                  placeHolder="Number of moderators"
+                />
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
-                <table class="ui inverted table">
-                  <thead class="">
-                    <tr class="">
-                      <th class="">Moderator</th>
-                      <th class="">Number of channels</th>
-                    </tr>
-                  </thead>
-                  <tbody class="">{this.renderRows()}</tbody>
-                </table>
+                <TableComp
+                  headers={headers}
+                  column_1={this.state.moderators}
+                  column_2={this.state.streamers}
+                  column_1_key="name"
+                  column_2_key="streamers"
+                ></TableComp>
               </Grid.Column>
             </Grid.Row>
           </Grid>

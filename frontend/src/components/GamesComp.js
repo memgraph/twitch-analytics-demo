@@ -17,8 +17,8 @@ class GamesComp extends Component {
     };
   }
 
-  fetchData() {
-    fetch("/get-top-games/" + this.state.numOfGames)
+  fetchData(number) {
+    fetch("/get-top-games/" + number)
       .then((res) => res.json())
       .then(
         (result) => {
@@ -35,21 +35,18 @@ class GamesComp extends Component {
           });
         }
       );
+    this.setState({
+      numOfGames: number,
+      header: "Top " + number + " games",
+    });
   }
 
   componentDidMount() {
-    this.fetchData();
-  }
-
-  componentDidUpdate() {
-    this.fetchData();
+    this.fetchData(this.state.numOfGames);
   }
 
   updateNumOfGames = (num) => {
-    this.setState({
-      numOfGames: num.value,
-      header: "Top " + num.value + " games",
-    });
+    this.fetchData(num.value);
   };
 
   render() {
@@ -69,7 +66,10 @@ class GamesComp extends Component {
               <Grid.Column width={8}>
                 <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
                 <br></br>
-                <DropdownComp updateStateParent={this.updateNumOfGames} />
+                <DropdownComp
+                  updateStateParent={this.updateNumOfGames}
+                  placeHolder="Number of games"
+                />
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp

@@ -33,7 +33,7 @@ export default class DropdownComp extends Component {
           <Dropdown
             onChange={this.twoCalls}
             options={options}
-            placeholder="Choose an option"
+            placeholder={this.props.placeHolder}
             selection
             value={value}
           />

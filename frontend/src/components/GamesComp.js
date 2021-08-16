@@ -17,8 +17,6 @@ class GamesComp extends Component {
     };
   }
 
-  //on dropdown change set new numofgames state and change header to Top _numOfGames_ games
-
   fetchData() {
     fetch("/get-top-games/" + this.state.numOfGames)
       .then((res) => res.json())
@@ -48,7 +46,6 @@ class GamesComp extends Component {
   }
 
   updateNumOfGames = (num) => {
-    console.log(num.value);
     this.setState({
       numOfGames: num.value,
       header: "Top " + num.value + " games",

@@ -1,5 +1,8 @@
 import React, { Component } from "react";
-import { Grid, Segment, Header } from "semantic-ui-react";
+import { Grid, Segment } from "semantic-ui-react";
+import DropdownComp from "./DropdownComp";
+import LeftColumn from "./LeftColumn";
+import TableComp from "./TableComp";
 
 class TeamsComp extends Component {
   constructor(props) {
@@ -9,11 +12,13 @@ class TeamsComp extends Component {
       isLoaded: false,
       teams: [],
       members: [],
+      numOfTeams: "10",
+      header: "Top 10 teams",
     };
   }
 
-  componentDidMount() {
-    fetch("/get-top-teams/10")
+  fetchData() {
+    fetch("/get-top-teams/" + this.state.numOfTeams)
       .then((res) => res.json())
       .then(
         (result) => {
@@ -32,19 +37,26 @@ class TeamsComp extends Component {
       );
   }
 
-  renderRows() {
-    return Object.keys(this.state.teams).map((team, id) => {
-      return (
-        <tr>
-          <td>{this.state.teams[id]["name"]}</td>
-          <td>{this.state.members[id]["members"]}</td>
-        </tr>
-      );
-    });
+  componentDidMount() {
+    this.fetchData();
   }
 
+  componentDidUpdate() {
+    this.fetchData();
+  }
+
+  updateNumOfTeams = (num) => {
+    this.setState({
+      numOfTeams: num.value,
+      header: "Top " + num.value + " teams",
+    });
+  };
+
   render() {
-    const { error, isLoaded, teams, members } = this.state;
+    const { error, isLoaded, header } = this.state;
+    const paragraph =
+      "Find out which teams are the most popular. Choose a number of top teams you would like to see:";
+    const headers = ["Team", "Number of members"];
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
@@ -55,23 +67,18 @@ class TeamsComp extends Component {
           <Grid container stackable verticalAlign="middle">
             <Grid.Row>
               <Grid.Column width={8}>
-                <Header as="h3" style={{ fontSize: "2em" }}>
-                  Top teams
-                </Header>
-                <p style={{ fontSize: "1.33em" }}>
-                  Find out which teams are the most popular.
-                </p>
+                <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
+                <br></br>
+                <DropdownComp updateStateParent={this.updateNumOfTeams} />
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
-                <table class="ui inverted table">
-                  <thead class="">
-                    <tr class="">
-                      <th class="">Team</th>
-                      <th class="">Number of members</th>
-                    </tr>
-                  </thead>
-                  <tbody class="">{this.renderRows()}</tbody>
-                </table>
+                <TableComp
+                  headers={headers}
+                  column_1={this.state.teams}
+                  column_2={this.state.members}
+                  column_1_key="name"
+                  column_2_key="members"
+                ></TableComp>
               </Grid.Column>
             </Grid.Row>
           </Grid>

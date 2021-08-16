@@ -1,5 +1,6 @@
 import React, { Component } from "react";
-import { Grid, Segment, Header } from "semantic-ui-react";
+import { Grid, Segment } from "semantic-ui-react";
+import LeftColumn from "./LeftColumn";
 
 class ModeratorsComp extends Component {
   constructor(props) {
@@ -45,6 +46,9 @@ class ModeratorsComp extends Component {
 
   render() {
     const { error, isLoaded, moderators, streamers } = this.state;
+    const header = "Top moderators";
+    const paragraph =
+      "Find out which user is the most popular channel moderator.";
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
@@ -55,12 +59,7 @@ class ModeratorsComp extends Component {
           <Grid container stackable verticalAlign="middle">
             <Grid.Row>
               <Grid.Column width={8}>
-                <Header as="h3" style={{ fontSize: "2em" }}>
-                  Top moderators
-                </Header>
-                <p style={{ fontSize: "1.33em" }}>
-                  Find out which user is the most popular channel moderator.
-                </p>
+                <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <table class="ui inverted table">

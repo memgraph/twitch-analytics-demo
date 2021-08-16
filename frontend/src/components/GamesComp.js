@@ -1,5 +1,8 @@
 import React, { Component } from "react";
-import { Grid, Segment, Header } from "semantic-ui-react";
+import { Grid, Segment } from "semantic-ui-react";
+import DropdownComp from "./DropdownComp";
+import LeftColumn from "./LeftColumn";
+import TableComp from "./TableComp";
 
 class GamesComp extends Component {
   constructor(props) {
@@ -9,11 +12,15 @@ class GamesComp extends Component {
       isLoaded: false,
       games: [],
       players: [],
+      numOfGames: "10",
+      header: "Top 10 games",
     };
   }
 
-  componentDidMount() {
-    fetch("/get-top-games/10")
+  //on dropdown change set new numofgames state and change header to Top _numOfGames_ games
+
+  fetchData() {
+    fetch("/get-top-games/" + this.state.numOfGames)
       .then((res) => res.json())
       .then(
         (result) => {
@@ -32,19 +39,27 @@ class GamesComp extends Component {
       );
   }
 
-  renderRows() {
-    return Object.keys(this.state.games).map((game, id) => {
-      return (
-        <tr>
-          <td>{this.state.games[id]["name"]}</td>
-          <td>{this.state.players[id]["players"]}</td>
-        </tr>
-      );
-    });
+  componentDidMount() {
+    this.fetchData();
   }
 
+  componentDidUpdate() {
+    this.fetchData();
+  }
+
+  updateNumOfGames = (num) => {
+    console.log(num.value);
+    this.setState({
+      numOfGames: num.value,
+      header: "Top " + num.value + " games",
+    });
+  };
+
   render() {
-    const { error, isLoaded, games, players } = this.state;
+    const { error, isLoaded, header } = this.state;
+    const paragraph =
+      "Find out which games are played by the largest number of streamers. Choose a number of top games you would like to see:";
+    const headers = ["Game", "Number of players"];
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
@@ -55,24 +70,18 @@ class GamesComp extends Component {
           <Grid container stackable verticalAlign="middle">
             <Grid.Row>
               <Grid.Column width={8}>
-                <Header as="h3" style={{ fontSize: "2em" }}>
-                  Top games
-                </Header>
-                <p style={{ fontSize: "1.33em" }}>
-                  Find out which games are played by the largest number of
-                  streamers.
-                </p>
+                <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
+                <br></br>
+                <DropdownComp updateStateParent={this.updateNumOfGames} />
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
-                <table class="ui inverted table">
-                  <thead class="">
-                    <tr class="">
-                      <th class="">Game</th>
-                      <th class="">Number of players</th>
-                    </tr>
-                  </thead>
-                  <tbody class="">{this.renderRows()}</tbody>
-                </table>
+                <TableComp
+                  headers={headers}
+                  column_1={this.state.games}
+                  column_2={this.state.players}
+                  column_1_key="name"
+                  column_2_key="players"
+                ></TableComp>
               </Grid.Column>
             </Grid.Row>
           </Grid>

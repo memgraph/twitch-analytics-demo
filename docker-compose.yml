@@ -11,9 +11,9 @@ services:
     ports:
       - "7687:7687"
   twitch-app:
-    build: .
+    build: ./backend
     volumes:
-      - .:/app
+      - ./backend:/app
     ports:
       - "5000:5000"
     environment:

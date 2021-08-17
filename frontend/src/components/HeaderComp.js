@@ -69,27 +69,27 @@ class HeaderComp extends Component {
           >
             <Container>
               <Menu.Item as="a">
-                <Button as="a" inverted={!fixed}>
+                <Button as="a" inverted={!fixed} color="orange">
                   Games
                 </Button>
               </Menu.Item>
               <Menu.Item as="a">
-                <Button as="a" inverted={!fixed}>
+                <Button as="a" inverted={!fixed} color="orange">
                   Teams
                 </Button>
               </Menu.Item>
               <Menu.Item as="a">
-                <Button as="a" inverted={!fixed}>
+                <Button as="a" inverted={!fixed} color="orange">
                   Vips
                 </Button>
               </Menu.Item>
               <Menu.Item as="a">
-                <Button as="a" inverted={!fixed}>
+                <Button as="a" inverted={!fixed} color="orange">
                   Moderators
                 </Button>
               </Menu.Item>
               <Menu.Item as="a">
-                <Button as="a" inverted={!fixed}>
+                <Button as="a" inverted={!fixed} color="orange">
                   Streamers
                 </Button>
               </Menu.Item>

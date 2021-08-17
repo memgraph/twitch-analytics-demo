@@ -8,6 +8,8 @@ import TeamsComp from "./components/TeamsComp";
 import VipsComp from "./components/VipsComp";
 import ModeratorsComp from "./components/ModeratorsComp";
 import StreamersComp from "./components/StreamersComp";
+import GraphHeader from "./components/GraphHeader";
+import SvgComp from "./components/SvgComp";
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
       <VipsComp />
       <ModeratorsComp />
       <StreamersComp />
+      <GraphHeader />
+      <SvgComp />
     </div>
   );
 }

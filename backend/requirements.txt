@@ -1,0 +1,3 @@
+Flask==1.1.2
+pymgclient==1.0.0
+gqlalchemy

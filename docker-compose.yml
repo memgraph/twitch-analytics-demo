@@ -21,3 +21,12 @@ services:
       MG_PORT: 7687
     depends_on:
       - memgraph-mage
+  react-app:
+      build: ./frontend
+      volumes:
+        - ./frontend:/app
+        - /app/node_modules
+      ports:
+        - "3000:3000"
+      depends_on:
+        - twitch-app

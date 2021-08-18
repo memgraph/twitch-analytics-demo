@@ -3,9 +3,10 @@ from argparse import ArgumentParser
 from gqlalchemy import Match, Memgraph
 import time
 from functools import wraps
-from flask import Flask, Response, render_template 
+from flask import Flask, Response, render_template
 from pathlib import Path
 import json
+import os
 
 from werkzeug.wrappers import response
 
@@ -30,7 +31,7 @@ def parse_args():
         "--template-folder",
         default="public/template",
         help="Path to the directory with flask templates.",
-    ) 
+    )
     parser.add_argument(
         "--static-folder",
         default="public",
@@ -53,9 +54,9 @@ def parse_args():
         action="store_false",
     )
     parser.set_defaults(populate=True)
-    print(__doc__) 
+    print(__doc__)
     return parser.parse_args()
- 
+
 
 args = parse_args()
 log.info("POPULATE:" + str(args.populate))
@@ -64,16 +65,16 @@ memgraph = Memgraph()
 connection_established = False
 while(not connection_established):
     try:
-        if (memgraph._get_cached_connection().is_active()):  
+        if (memgraph._get_cached_connection().is_active()):
             connection_established = True
     except:
         log.info("Memgraph probably isn't running.")
         time.sleep(4)
- 
+
 app = Flask(
     __name__,
     template_folder=args.template_folder,
-    static_folder=args.static_folder, 
+    static_folder=args.static_folder,
     static_url_path="",
 )
 
@@ -98,25 +99,25 @@ def load_twitch_data():
 
         # maybe memgraph.execute() in new gqlalchemy
 
-        memgraph.execute_query(
+        memgraph.execute(
             f"""LOAD CSV FROM "{path_streams}"
             WITH HEADER DELIMITER "," AS row
-            CREATE (u:User:Stream {{id: ToString(row.user_id), name: Tostring(row.user_name), url: ToString(row.thumbnail_url), followers: ToInteger(row.followers), createdAt: ToString(row.created_at), totalViewCount: ToInteger(row.view_count), description: ToString(row.description)}}) 
+            CREATE (u:User:Stream {{id: ToString(row.user_id), name: Tostring(row.user_name), url: ToString(row.thumbnail_url), followers: ToInteger(row.followers), createdAt: ToString(row.created_at), totalViewCount: ToInteger(row.view_count), description: ToString(row.description)}})
             MERGE (l:Language {{name: ToString(row.language)}})
             CREATE (u)-[:SPEAKS]->(l)
             MERGE (g:Game{{name: ToString(row.game_name)}})
             CREATE (u)-[:PLAYS]->(g);"""
         )
 
-        memgraph.execute_query(
+        memgraph.execute(
             f"""CREATE INDEX ON :User(id);"""
         )
 
-        memgraph.execute_query(
+        memgraph.execute(
             f"""CREATE INDEX ON :User(name);"""
         )
 
-        memgraph.execute_query(
+        memgraph.execute(
             f"""LOAD CSV FROM "{path_teams}"
             WITH HEADER DELIMITER "," AS row
             MATCH (s:User:Stream)
@@ -124,8 +125,8 @@ def load_twitch_data():
             MERGE (t:Team {{name: toString(row.team_name)}})
             CREATE (s)-[:IS_PART_OF]->(t);"""
         )
-        
-        memgraph.execute_query(
+
+        memgraph.execute(
             f"""LOAD CSV FROM "{path_vips}"
             WITH HEADER DELIMITER "," AS row
             MATCH (s:User:Stream)
@@ -134,7 +135,7 @@ def load_twitch_data():
             CREATE (v)-[:VIP]->(s);"""
         )
 
-        memgraph.execute_query(
+        memgraph.execute(
             f"""LOAD CSV FROM "{path_moderators}"
             WITH HEADER DELIMITER "," AS row
             MATCH (s:User:Stream)
@@ -143,7 +144,7 @@ def load_twitch_data():
             CREATE (m)-[:MODERATOR]->(s);"""
         )
 
-        memgraph.execute_query(
+        memgraph.execute(
             f"""LOAD CSV FROM "{path_chatters}"
             WITH HEADER DELIMITER "," AS row
             MATCH (s:User {{id: row.user_id}})
@@ -172,7 +173,7 @@ def get_page_rank():
                 page_rank_dict = {"name": user_name, "rank": rank}
                 dict_copy = page_rank_dict.copy()
                 page_rank_list.append(dict_copy)
-        sorted_list = sorted(page_rank_list, key = lambda i: i['rank'], reverse=True) 
+        sorted_list = sorted(page_rank_list, key = lambda i: i['rank'], reverse=True)
         response = {"page_rank" : sorted_list}
 
         return Response(json.dumps(response), status=200, mimetype="application/json")
@@ -180,7 +181,7 @@ def get_page_rank():
     except Exception as e:
         log.info("Fetching users' ranks using pagerank went wrong.")
         log.info(e)
-        return ("", 500) 
+        return ("", 500)
 
 
 # returning one component due to the whole graph
@@ -211,7 +212,7 @@ def get_wcc():
     except Exception as e:
         log.info("Fetching weakly connected components went wrong.")
         log.info(e)
-        return ("", 500) 
+        return ("", 500)
 
 # BadBoyHalo has highest bc and pagerank
 @app.route("/get-bc", methods=["GET"])
@@ -233,7 +234,7 @@ def get_bc():
                 bc_dict = {"name": user_name, "betweenness_centrality": bc}
                 dict_copy = bc_dict.copy()
                 bc_list.append(dict_copy)
-        sorted_list = sorted(bc_list, key = lambda i: i['betweenness_centrality'], reverse=True) 
+        sorted_list = sorted(bc_list, key = lambda i: i['betweenness_centrality'], reverse=True)
         response = {"bc" : sorted_list}
 
         return Response(json.dumps(response), status=200, mimetype="application/json")
@@ -241,21 +242,20 @@ def get_bc():
     except Exception as e:
         log.info("Fetching betweenness centrality went wrong.")
         log.info(e)
-        return ("", 500) 
+        return ("", 500)
 
-@app.route("/load-data", methods=["GET"])
 @log_time
 def load_data():
     """Load data into the database."""
     if args.populate:
         log.info("LOADING DATA INTO MEMGRAPH")
         try:
-            memgraph.drop_database()      
+            memgraph.drop_database()
             load_twitch_data()
             return Response(status=200)
         except Exception as e:
             log.info("Data loading error.")
-            log.info(e) 
+            log.info(e)
             return Response(status=500)
     else:
         log.info("DATA IS ALREADY LOADED")
@@ -266,14 +266,14 @@ def load_data():
 @app.route("/get-graph", methods=["GET"])
 @log_time
 def get_data():
-    try: 
+    try:
         results = (
             Match()
             .node("User", variable="from")
             .to("IS_PART_OF")
             .node("Team", variable="to")
             .execute()
-        ) 
+        )
 
         nodes_set = set()
         links_set = set()
@@ -286,15 +286,15 @@ def get_data():
             source_name = result["from"].properties['name']
             target_name = target_id
 
-            nodes_set.add((source_id, source_label, source_name)) 
+            nodes_set.add((source_id, source_label, source_name))
             nodes_set.add((target_id, target_label, target_name))
 
             if (source_id, target_id) not in links_set and (
                 target_id,
-                source_id,  
+                source_id,
             ) not in links_set:
-                links_set.add((source_id, target_id))  
- 
+                links_set.add((source_id, target_id))
+
         nodes = [
             {"id": node_id, "label": node_label, "name": node_name}
             for node_id, node_label, node_name in nodes_set
@@ -308,7 +308,7 @@ def get_data():
     except Exception as e:
         log.info("Data fetching went wrong.")
         log.info(e)
-        return ("", 500) 
+        return ("", 500)
 
 
 @app.route("/get-top-streamers-by-views/<num_of_streamers>", methods=["GET"])
@@ -347,14 +347,14 @@ def get_top_streamers_by_views(num_of_streamers):
     except Exception as e:
         log.info("Fetching top streamers by views went wrong.")
         log.info(e)
-        return ("", 500) 
+        return ("", 500)
 
 
 @app.route("/get-top-streamers-by-followers/<num_of_streamers>", methods=["GET"])
 @log_time
 def get_top_streamers_by_followers(num_of_streamers):
     """Get top _num_ streamers by total number of followers."""
- 
+
     try:
         results = memgraph.execute_and_fetch(
             """MATCH(u:Stream)
@@ -364,15 +364,15 @@ def get_top_streamers_by_followers(num_of_streamers):
         )
         streamers_list = list()
         followers_list = list()
-        for result in results: 
+        for result in results:
             streamer_name = result['streamer']
             num_of_followers = result['num_of_followers']
-            streamers_list.append(streamer_name) 
+            streamers_list.append(streamer_name)
             followers_list.append(num_of_followers)
         streamers = [
-            {"name": streamer_name} 
+            {"name": streamer_name}
             for streamer_name in streamers_list
-        ] 
+        ]
         followers = [
             {"followers": follower_count}
             for follower_count in followers_list
@@ -382,7 +382,7 @@ def get_top_streamers_by_followers(num_of_streamers):
 
     except Exception as e:
         log.info("Fetching top streamers by followers went wrong.")
-        log.info(e) 
+        log.info(e)
         return ("", 500)
 
 
@@ -422,7 +422,7 @@ def get_top_games(num_of_games):
     except Exception as e:
         log.info("Fetching top games went wrong.")
         log.info(e)
-        return ("", 500) 
+        return ("", 500)
 
 
 @app.route("/get-top-teams/<num_of_teams>", methods=["GET"])
@@ -436,7 +436,7 @@ def get_top_teams(num_of_teams):
             RETURN t.name as team_name, COUNT(u) as number_of_members
             ORDER BY number_of_members DESC
             LIMIT """ + str(num_of_teams) + """;"""
-        ) 
+        )
 
         teams_list = list()
         members_list = list()
@@ -461,8 +461,8 @@ def get_top_teams(num_of_teams):
     except Exception as e:
         log.info("Fetching top teams went wrong.")
         log.info(e)
-        return ("", 500) 
- 
+        return ("", 500)
+
 
 @app.route("/get-top-vips/<num_of_vips>", methods=["GET"])
 @log_time
@@ -475,7 +475,7 @@ def get_top_vips(num_of_vips):
             RETURN v.name as vip_name, COUNT(u) as number_of_streamers
             ORDER BY number_of_streamers DESC
             LIMIT """ + str(num_of_vips) + """;"""
-        ) 
+        )
 
         vips_list = list()
         streamers_list = list()
@@ -500,7 +500,7 @@ def get_top_vips(num_of_vips):
     except Exception as e:
         log.info("Fetching top teams went wrong.")
         log.info(e)
-        return ("", 500) 
+        return ("", 500)
 
 
 @app.route("/get-top-moderators/<num_of_moderators>", methods=["GET"])
@@ -514,7 +514,7 @@ def get_top_moderators(num_of_moderators):
             RETURN m.name as moderator_name, COUNT(u) as number_of_streamers
             ORDER BY number_of_streamers DESC
             LIMIT """ + str(num_of_moderators) + """;"""
-        ) 
+        )
 
         moderators_list = list()
         streamers_list = list()
@@ -539,7 +539,7 @@ def get_top_moderators(num_of_moderators):
     except Exception as e:
         log.info("Fetching top teams went wrong.")
         log.info(e)
-        return ("", 500) 
+        return ("", 500)
 
 
 @app.route("/get-streamer/<streamer_name>", methods=["GET"])
@@ -561,7 +561,7 @@ def get_streamer(streamer_name):
         # If the streamer exists, return its relationships
         if(is_streamer):
             results = memgraph.execute_and_fetch(
-                """MATCH (u:User {name:'""" + str(streamer_name) + """'})-[]->(n) 
+                """MATCH (u:User {name:'""" + str(streamer_name) + """'})-[]->(n)
                 RETURN u,n;"""
             )
 
@@ -577,14 +577,14 @@ def get_streamer(streamer_name):
                 target_name = result['n'].properties['name']
                 target_label = list(result['n'].labels)[0]
 
-                nodes_set.add((source_id, source_label, source_name)) 
+                nodes_set.add((source_id, source_label, source_name))
                 nodes_set.add((target_id, target_label, target_name))
 
                 if (source_id, target_id) not in links_set and (
                     target_id,
-                    source_id,  
+                    source_id,
                 ) not in links_set:
-                    links_set.add((source_id, target_id))  
+                    links_set.add((source_id, target_id))
 
             nodes = [
                 {"id": node_id, "label": node_label, "name": node_name}
@@ -600,11 +600,11 @@ def get_streamer(streamer_name):
         return Response(json.dumps(response), status=200, mimetype="application/json")
 
 
- 
+
     except Exception as e:
         log.info("Data fetching went wrong.")
         log.info(e)
-        return ("", 500) 
+        return ("", 500)
 
 
 @app.route("/get-languages", methods=["GET"])
@@ -624,7 +624,7 @@ def get_languages():
             source_label = 'Language' #list(result['u'].labels)[0] can be User or Stream
             user_count = result['user_count']
 
-            nodes_set.add((source_label, source_name, user_count)) 
+            nodes_set.add((source_label, source_name, user_count))
 
         nodes = [
             {"label": node_label, "name": node_name, "num_of_users": node_count}
@@ -639,7 +639,7 @@ def get_languages():
     except Exception as e:
         log.info("Data fetching went wrong.")
         log.info(e)
-        return ("", 500) 
+        return ("", 500)
 
 
 @app.route("/get-streamers/<language>/<game>", methods=["GET"])
@@ -669,20 +669,20 @@ def get_streamers(language, game):
             target_2_name = result['l'].properties['name']
             target_2_label = 'Language'
 
-            nodes_set.add((source_id, source_name, source_label))             
-            nodes_set.add((target_1_id, target_1_name, target_1_label)) 
-            nodes_set.add((target_2_id, target_2_name, target_2_label)) 
+            nodes_set.add((source_id, source_name, source_label))
+            nodes_set.add((target_1_id, target_1_name, target_1_label))
+            nodes_set.add((target_2_id, target_2_name, target_2_label))
 
             if (source_id, target_1_id) not in links_set and (
                     target_1_id,
-                    source_id,  
+                    source_id,
                 ) not in links_set:
-                    links_set.add((source_id, target_1_id))  
+                    links_set.add((source_id, target_1_id))
             if (source_id, target_2_id) not in links_set and (
                     target_2_id,
-                    source_id,  
+                    source_id,
                 ) not in links_set:
-                    links_set.add((source_id, target_2_id))  
+                    links_set.add((source_id, target_2_id))
 
 
         nodes = [
@@ -697,17 +697,19 @@ def get_streamers(language, game):
     except Exception as e:
         log.info("Data fetching went wrong.")
         log.info(e)
-        return ("", 500) 
+        return ("", 500)
 
 
-@app.route("/", methods=["GET"])  
+@app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
 
 def main():
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        load_data()
     app.run(host=args.host, port=args.port, debug=args.debug)
 
 
 if __name__ == "__main__":
-    main()  
+    main()

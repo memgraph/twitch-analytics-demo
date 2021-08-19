@@ -4,28 +4,28 @@ import DropdownComp from "./DropdownComp";
 import LeftColumn from "./LeftColumn";
 import TableComp from "./TableComp";
 
-class VipsComp extends Component {
+class Teams extends Component {
   constructor(props) {
     super(props);
     this.state = {
       error: null,
       isLoaded: false,
-      vips: [],
-      streamers: [],
-      numOfVips: "10",
-      header: "Top 10 vips",
+      teams: [],
+      members: [],
+      numOfTeams: "10",
+      header: "Top 10 teams",
     };
   }
 
   fetchData(number) {
-    fetch("/get-top-vips/" + number)
+    fetch("/get-top-teams/" + number)
       .then((res) => res.json())
       .then(
         (result) => {
           this.setState({
             isLoaded: true,
-            vips: result.vips,
-            streamers: result.streamers,
+            teams: result.teams,
+            members: result.members,
           });
         },
         (error) => {
@@ -36,23 +36,24 @@ class VipsComp extends Component {
         }
       );
     this.setState({
-      numOfVips: number,
-      header: "Top " + number + " vips",
+      numOfTeams: number,
+      header: "Top " + number + " teams",
     });
   }
+
   componentDidMount() {
-    this.fetchData(this.state.numOfVips);
+    this.fetchData(this.state.numOfTeams);
   }
 
-  updateNumOfVips = (num) => {
+  updateNumOfTeams = (num) => {
     this.fetchData(num.value);
   };
 
   render() {
     const { error, isLoaded, header } = this.state;
     const paragraph =
-      "Find out which user has the most vip badges. Choose a number of top vips you would like to see:";
-    const headers = ["Vip", "Number of badges"];
+      "Find out which teams are the most popular. Choose a number of top teams you would like to see:";
+    const headers = ["Team", "Number of members"];
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
@@ -66,17 +67,17 @@ class VipsComp extends Component {
                 <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
                 <br></br>
                 <DropdownComp
-                  updateStateParent={this.updateNumOfVips}
-                  placeHolder="Number of vips"
+                  updateStateParent={this.updateNumOfTeams}
+                  placeHolder="Number of teams"
                 />
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp
                   headers={headers}
-                  column_1={this.state.vips}
-                  column_2={this.state.streamers}
+                  column_1={this.state.teams}
+                  column_2={this.state.members}
                   column_1_key="name"
-                  column_2_key="streamers"
+                  column_2_key="members"
                 ></TableComp>
               </Grid.Column>
             </Grid.Row>
@@ -87,4 +88,4 @@ class VipsComp extends Component {
   }
 }
 
-export default VipsComp;
+export default Teams;

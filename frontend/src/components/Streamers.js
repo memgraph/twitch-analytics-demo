@@ -4,7 +4,7 @@ import DropdownComp from "./DropdownComp";
 import LeftColumn from "./LeftColumn";
 import TableComp from "./TableComp";
 
-class StreamersComp extends Component {
+class Streamers extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -158,4 +158,4 @@ class StreamersComp extends Component {
   }
 }
 
-export default StreamersComp;
+export default Streamers;

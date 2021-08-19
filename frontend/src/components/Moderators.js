@@ -4,7 +4,7 @@ import DropdownComp from "./DropdownComp";
 import LeftColumn from "./LeftColumn";
 import TableComp from "./TableComp";
 
-class ModeratorsComp extends Component {
+class Moderators extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -88,4 +88,4 @@ class ModeratorsComp extends Component {
   }
 }
 
-export default ModeratorsComp;
+export default Moderators;

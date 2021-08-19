@@ -498,7 +498,7 @@ def get_top_vips(num_of_vips):
         return Response(json.dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
-        log.info("Fetching top teams went wrong.")
+        log.info("Fetching top vips went wrong.")
         log.info(e)
         return ("", 500)
 
@@ -537,7 +537,7 @@ def get_top_moderators(num_of_moderators):
         return Response(json.dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
-        log.info("Fetching top teams went wrong.")
+        log.info("Fetching top moderators went wrong.")
         log.info(e)
         return ("", 500)
 
@@ -602,7 +602,7 @@ def get_streamer(streamer_name):
 
 
     except Exception as e:
-        log.info("Data fetching went wrong.")
+        log.info("Fetching streamer by name went wrong.")
         log.info(e)
         return ("", 500)
 
@@ -637,7 +637,7 @@ def get_languages():
         return Response(json.dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
-        log.info("Data fetching went wrong.")
+        log.info("Fetching languages went wrong.")
         log.info(e)
         return ("", 500)
 
@@ -696,6 +696,34 @@ def get_streamers(language, game):
 
     except Exception as e:
         log.info("Data fetching went wrong.")
+        log.info(e)
+        return ("", 500)
+
+@app.route("/get-all-streamers-names", methods=["GET"])
+@log_time
+def get_all_streamers_names():
+    """Get the names of all streamers."""
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH (n:Stream)
+            RETURN n.name AS streamer_name;"""
+        )
+
+        streamers_list = list()
+
+        for result in results:
+            streamer_name = result['streamer_name']
+            streamers_list.append(streamer_name)
+
+        streamers = [
+            {"streamer_name": streamer_name}
+            for streamer_name in streamers_list
+        ]
+        response = {"streamers": streamers}
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching top teams went wrong.")
         log.info(e)
         return ("", 500)
 

@@ -5,8 +5,9 @@ import * as d3 from "d3";
 function Graph(props) {
   const ref = useD3(
     (svg) => {
-      const height = 700;
-      const width = 700;
+      svg.selectAll("*").remove();
+      const height = 250;
+      const width = 250;
       const simulation = d3
         .forceSimulation(props.nodes)
         .force(
@@ -65,7 +66,7 @@ function Graph(props) {
           return d.name; //return d.label for label
         })
         .style("text-anchor", "middle")
-        .style("fill", "#555")
+        .style("fill", "white")
         .style("font-family", "Arial")
         .style("font-size", "12px");
 
@@ -82,7 +83,7 @@ function Graph(props) {
             return d.x;
           })
           .attr("y", function (d) {
-            return d.y - 10;
+            return d.y - 15;
           });
       });
     },
@@ -116,8 +117,8 @@ function Graph(props) {
     <svg
       ref={ref}
       style={{
-        height: 500,
-        width: "100%",
+        height: 250,
+        width: 250,
         marginRight: "0px",
         marginLeft: "0px",
       }}

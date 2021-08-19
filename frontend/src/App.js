@@ -9,7 +9,7 @@ import Vips from "./components/Vips";
 import Moderators from "./components/Moderators";
 import Streamers from "./components/Streamers";
 import GraphHeader from "./components/GraphHeader";
-import FetchStreamer from "./components/FetchStreamer";
+import FindStreamer from "./components/FindStreamer";
 
 function App() {
   return (
@@ -21,7 +21,7 @@ function App() {
       <Moderators />
       <Streamers />
       <GraphHeader />
-      <FetchStreamer />
+      <FindStreamer />
     </div>
   );
 }

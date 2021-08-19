@@ -57,7 +57,7 @@ class FindStreamer extends Component {
     } else {
       const header = "Get to know your favourite streamer";
       const paragraph =
-        "Find out which games does your favourite streamer plays, in which language does the streamer strems and which teams is the streamer part of.";
+        "Games, teams and languages - all you need to know about your favourite streamer.";
       const square = { width: 250, height: 250 };
       return (
         <Segment style={{ padding: "8em 0em" }} vertical>

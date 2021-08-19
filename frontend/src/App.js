@@ -3,25 +3,25 @@ import "semantic-ui-css/semantic.min.css";
 import "semantic-ui-less/semantic.less";
 import React from "react";
 import HeaderComp from "./components/HeaderComp";
-import GamesComp from "./components/GamesComp";
-import TeamsComp from "./components/TeamsComp";
-import VipsComp from "./components/VipsComp";
-import ModeratorsComp from "./components/ModeratorsComp";
-import StreamersComp from "./components/StreamersComp";
+import Games from "./components/Games";
+import Teams from "./components/Teams";
+import Vips from "./components/Vips";
+import Moderators from "./components/Moderators";
+import Streamers from "./components/Streamers";
 import GraphHeader from "./components/GraphHeader";
-import SvgComp from "./components/SvgComp";
+import FetchStreamer from "./components/FetchStreamer";
 
 function App() {
   return (
     <div>
       <HeaderComp />
-      <GamesComp />
-      <TeamsComp />
-      <VipsComp />
-      <ModeratorsComp />
-      <StreamersComp />
+      <Games />
+      <Teams />
+      <Vips />
+      <Moderators />
+      <Streamers />
       <GraphHeader />
-      <SvgComp />
+      <FetchStreamer />
     </div>
   );
 }

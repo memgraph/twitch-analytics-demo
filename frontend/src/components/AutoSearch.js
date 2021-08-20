@@ -1,13 +1,6 @@
 import _ from "lodash";
 import React, { useState } from "react";
-import {
-  Search,
-  Grid,
-  Label,
-  Segment,
-  Header,
-  Button,
-} from "semantic-ui-react";
+import { Search, Grid, Label, Button } from "semantic-ui-react";
 
 const initialState = {
   loading: false,

@@ -10,6 +10,7 @@ import Moderators from "./components/Moderators";
 import Streamers from "./components/Streamers";
 import GraphHeader from "./components/GraphHeader";
 import FindStreamer from "./components/FindStreamer";
+import FindStreamer2 from "./components/FindStreamer2";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
       <Streamers />
       <GraphHeader />
       <FindStreamer />
+      <FindStreamer2 />
     </div>
   );
 }

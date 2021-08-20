@@ -1,10 +1,10 @@
 import { Component } from "react";
-import { Grid, Segment } from "semantic-ui-react";
-import AutoSearch from "./AutoSearch";
+import { Grid, Segment, Label } from "semantic-ui-react";
 import Graph from "./Graph";
 import LeftColumn from "./LeftColumn";
+import AutoCompleteGame from "./AutoCompleteGame";
 
-class FindStreamer extends Component {
+class FindStreamer2 extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -13,11 +13,13 @@ class FindStreamer extends Component {
       nodes: [],
       links: [],
       streamerName: "Fextralife",
+      game: "League of Legends",
+      language: "en",
     };
   }
 
-  fetchData(name) {
-    fetch("/get-streamer/" + name)
+  fetchData(gameName, lang) {
+    fetch("/get-streamers/" + lang + "/" + gameName)
       .then((res) => res.json())
       .then(
         (result) => {
@@ -34,17 +36,19 @@ class FindStreamer extends Component {
           });
         }
       );
+
     this.setState({
-      streamerName: name,
+      game: gameName,
+      language: lang,
     });
   }
 
   componentDidMount() {
-    this.fetchData(this.state.streamerName);
+    this.fetchData(this.state.game, this.state.language);
   }
 
-  updateStreamerName = (strName) => {
-    this.fetchData(strName);
+  updateGameLang = (gameName, lang) => {
+    this.fetchData(gameName, lang);
   };
 
   render() {
@@ -54,9 +58,9 @@ class FindStreamer extends Component {
     } else if (!isLoaded) {
       return <div>Loading...</div>;
     } else {
-      const header = "Get to know your favourite streamer";
+      const header = "Find streamers by game and language";
       const paragraph =
-        "Games, teams and languages - all you need to know about your favourite streamer.";
+        "Find all streamers who stream your favourite game in your language.";
       const square = { width: 250, height: 250 };
       return (
         <Segment style={{ padding: "8em 0em" }} vertical>
@@ -65,7 +69,7 @@ class FindStreamer extends Component {
               <Grid.Column width={8}>
                 <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
                 <br></br>
-                <AutoSearch updateStateParent={this.updateStreamerName} />
+                <AutoCompleteGame updateStateParent={this.updateGameLang} />
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <Segment circular inverted style={square}>
@@ -80,4 +84,4 @@ class FindStreamer extends Component {
   }
 }
 
-export default FindStreamer;
+export default FindStreamer2;

@@ -2,7 +2,7 @@ import { Component } from "react";
 import { Grid, Segment } from "semantic-ui-react";
 import Graph from "./Graph";
 import LeftColumn from "./LeftColumn";
-import StreamersName from "./StreamersName";
+import StreamerSearch from "./StreamerSearch";
 
 class FindStreamer extends Component {
   constructor(props) {
@@ -23,7 +23,6 @@ class FindStreamer extends Component {
         (result) => {
           this.setState({
             isLoaded: true,
-            data: result,
             nodes: result.nodes,
             links: result.links,
           });
@@ -66,7 +65,7 @@ class FindStreamer extends Component {
               <Grid.Column width={8}>
                 <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
                 <br></br>
-                <StreamersName updateStateParent={this.updateStreamerName} />
+                <StreamerSearch updateStateParent={this.updateStreamerName} />
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <Segment circular inverted style={square}>

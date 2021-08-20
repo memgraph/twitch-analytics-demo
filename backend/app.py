@@ -706,27 +706,25 @@ def get_all_streamers_names():
     try:
         results = memgraph.execute_and_fetch(
             """MATCH (n:Stream)
-            RETURN n.name AS streamer_name;"""
+                RETURN n.name AS streamer_name, n.totalViewCount AS view_count;"""
         )
 
         streamers_list = list()
 
         for result in results:
             streamer_name = result['streamer_name']
-            streamers_list.append(streamer_name)
+            view_count = result['view_count']
+            streamer = {"title": streamer_name, "description": "streamer", "image": "image", "price": str(view_count)}
+            streamers_list.append(streamer)
 
-        streamers = [
-            {"streamer_name": streamer_name}
-            for streamer_name in streamers_list
-        ]
-        response = {"streamers": streamers}
+        response = {"streamers": streamers_list}
         return Response(json.dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
         log.info(e)
         return ("", 500)
-
+ 
 
 @app.route("/", methods=["GET"])
 def index():

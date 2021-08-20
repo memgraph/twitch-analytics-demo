@@ -726,6 +726,56 @@ def get_all_streamers_names():
         return ("", 500)
  
 
+@app.route("/get-all-games-names", methods=["GET"])
+@log_time
+def get_all_games_names():
+    """Get the names of all streamers."""
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH(n:Game)
+                RETURN n.name AS game_name;"""
+        )
+
+        games_list = list()
+
+        for result in results:
+            game_name = result['game_name']
+            game = {"title": game_name, "description": "game", "image": "image", "price": "0"}
+            games_list.append(game)
+
+        response = {"games": games_list}
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching top teams went wrong.")
+        log.info(e)
+        return ("", 500)
+
+@app.route("/get-all-languages-names", methods=["GET"])
+@log_time
+def get_all_languages_names():
+    """Get the names of all streamers."""
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH(n:Language)
+                RETURN n.name AS language_name;"""
+        )
+
+        languages_list = list()
+
+        for result in results:
+            language_name = result['language_name']
+            language = {"title": language_name, "description": "language", "image": "image", "price": "0"}
+            languages_list.append(language)
+
+        response = {"languages": languages_list}
+        return Response(json.dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching top teams went wrong.")
+        log.info(e)
+        return ("", 500)
+
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")

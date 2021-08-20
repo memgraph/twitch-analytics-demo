@@ -28,7 +28,6 @@ function Graph(props) {
         .join("line")
         .attr("stroke-width", 1);
 
-      var div = d3.select("#tooltip");
       const node = svg
         .append("g")
         .attr("stroke", "#fff")
@@ -43,17 +42,6 @@ function Graph(props) {
           else if (d.label === "Stream") return "orange";
           else if (d.label === "Game") return "blue";
           else if (d.label === "Language") return "purple";
-        })
-        .on("mouseover", function (event, d) {
-          div.transition().duration(200).style("opacity", 0.9);
-          div
-            .html("label: " + d.label + "<br>name: " + d.name)
-            .style("left", event.pageX + 25 + "px")
-            .style("top", event.pageY - 25 + "px")
-            .style("padding", "10px");
-        })
-        .on("mouseout", function (event, d) {
-          div.transition().duration(500).style("opacity", 0);
         })
         .call(drag(simulation));
 
@@ -89,6 +77,7 @@ function Graph(props) {
     },
     [props.nodes.length]
   );
+
   const drag = (simulation) => {
     function dragstarted(event) {
       if (!event.active) simulation.alphaTarget(0.3).restart();

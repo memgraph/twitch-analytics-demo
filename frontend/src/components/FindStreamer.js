@@ -1,8 +1,7 @@
 import { Component } from "react";
-import { Grid, Segment } from "semantic-ui-react";
+import { Grid, Segment, Header } from "semantic-ui-react";
 import AutoSearch from "./AutoSearch";
 import Graph from "./Graph";
-import LeftColumn from "./LeftColumn";
 
 class FindStreamer extends Component {
   constructor(props) {
@@ -63,7 +62,10 @@ class FindStreamer extends Component {
           <Grid container stackable verticalAlign="middle">
             <Grid.Row>
               <Grid.Column width={8}>
-                <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
+                <Header as="h3" style={{ fontSize: "2em" }}>
+                  {header}
+                </Header>
+                <p style={{ fontSize: "1.33em" }}>{paragraph}</p>
                 <br></br>
                 <AutoSearch updateStateParent={this.updateStreamerName} />
               </Grid.Column>

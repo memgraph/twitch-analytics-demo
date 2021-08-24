@@ -1,7 +1,6 @@
 import { Component } from "react";
-import { Grid, Segment } from "semantic-ui-react";
+import { Grid, Segment, Header } from "semantic-ui-react";
 import GraphBC from "./GraphBC";
-import LeftColumn from "./LeftColumn";
 
 class BC extends Component {
   _isMounted = false;
@@ -51,7 +50,12 @@ class BC extends Component {
         <Segment style={{ padding: "8em 0em" }} vertical>
           <Grid centered columns={2}>
             <Grid.Column>
-              <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
+              <Header as="h3" textAlign="center" style={{ fontSize: "2em" }}>
+                {header}
+              </Header>
+              <p align="center" style={{ fontSize: "1.33em" }}>
+                {paragraph}
+              </p>
             </Grid.Column>
           </Grid>
           <br></br>

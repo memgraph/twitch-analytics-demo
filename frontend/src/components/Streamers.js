@@ -1,7 +1,6 @@
 import React, { Component } from "react";
-import { Grid, Segment } from "semantic-ui-react";
+import { Grid, Segment, Header } from "semantic-ui-react";
 import DropdownComp from "./DropdownComp";
-import LeftColumn from "./LeftColumn";
 import TableComp from "./TableComp";
 
 class Streamers extends Component {
@@ -107,10 +106,10 @@ class Streamers extends Component {
           <Grid container stackable verticalAlign="middle">
             <Grid.Row>
               <Grid.Column width={8}>
-                <LeftColumn
-                  header={headerViews}
-                  paragraph={paragraphViews}
-                ></LeftColumn>
+                <Header as="h3" style={{ fontSize: "2em" }}>
+                  {headerViews}
+                </Header>
+                <p style={{ fontSize: "1.33em" }}>{paragraphViews}</p>
                 <br></br>
                 <DropdownComp
                   updateStateParent={this.updateNumOfStrViews}
@@ -131,10 +130,10 @@ class Streamers extends Component {
           <Grid container stackable verticalAlign="middle">
             <Grid.Row>
               <Grid.Column width={8}>
-                <LeftColumn
-                  header={headerFollowers}
-                  paragraph={paragraphFollowers}
-                ></LeftColumn>
+                <Header as="h3" style={{ fontSize: "2em" }}>
+                  {headerFollowers}
+                </Header>
+                <p style={{ fontSize: "1.33em" }}>{paragraphFollowers}</p>
                 <br></br>
                 <DropdownComp
                   updateStateParent={this.updateNumOfStrFollowers}

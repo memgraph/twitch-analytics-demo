@@ -1,7 +1,6 @@
 import React, { Component } from "react";
-import { Grid, Segment } from "semantic-ui-react";
+import { Grid, Segment, Header } from "semantic-ui-react";
 import DropdownComp from "./DropdownComp";
-import LeftColumn from "./LeftColumn";
 import TableComp from "./TableComp";
 
 class Vips extends Component {
@@ -63,7 +62,10 @@ class Vips extends Component {
           <Grid container stackable verticalAlign="middle">
             <Grid.Row>
               <Grid.Column width={8}>
-                <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
+                <Header as="h3" style={{ fontSize: "2em" }}>
+                  {header}
+                </Header>
+                <p style={{ fontSize: "1.33em" }}>{paragraph}</p>
                 <br></br>
                 <DropdownComp
                   updateStateParent={this.updateNumOfVips}

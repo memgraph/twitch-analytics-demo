@@ -33,7 +33,7 @@ function TwitchHeading() {
           marginTop: "1.5em",
         }}
       />
-      <button class="huge ui orange basic inverted button">
+      <button id="GraphHeader" class="huge ui orange basic inverted button">
         Graph visualization
         <Icon name="right arrow" />
       </button>
@@ -45,6 +45,7 @@ class HeaderComp extends Component {
   state = {};
   hideFixedMenu = () => this.setState({ fixed: false });
   showFixedMenu = () => this.setState({ fixed: true });
+  handleClick = (e) => this.props.scrollTarget(e.target.id);
   render() {
     const { fixed } = this.state;
 
@@ -69,27 +70,57 @@ class HeaderComp extends Component {
           >
             <Container>
               <Menu.Item as="a">
-                <Button as="a" inverted={!fixed} color="orange">
+                <Button
+                  id="Games"
+                  onClick={this.handleClick}
+                  as="a"
+                  inverted={!fixed}
+                  color="orange"
+                >
                   Games
                 </Button>
               </Menu.Item>
               <Menu.Item as="a">
-                <Button as="a" inverted={!fixed} color="orange">
+                <Button
+                  id="Teams"
+                  onClick={this.handleClick}
+                  as="a"
+                  inverted={!fixed}
+                  color="orange"
+                >
                   Teams
                 </Button>
               </Menu.Item>
               <Menu.Item as="a">
-                <Button as="a" inverted={!fixed} color="orange">
+                <Button
+                  id="Vips"
+                  onClick={this.handleClick}
+                  as="a"
+                  inverted={!fixed}
+                  color="orange"
+                >
                   Vips
                 </Button>
               </Menu.Item>
               <Menu.Item as="a">
-                <Button as="a" inverted={!fixed} color="orange">
+                <Button
+                  id="Moderators"
+                  onClick={this.handleClick}
+                  as="a"
+                  inverted={!fixed}
+                  color="orange"
+                >
                   Moderators
                 </Button>
               </Menu.Item>
               <Menu.Item as="a">
-                <Button as="a" inverted={!fixed} color="orange">
+                <Button
+                  id="Streamers"
+                  onClick={this.handleClick}
+                  as="a"
+                  inverted={!fixed}
+                  color="orange"
+                >
                   Streamers
                 </Button>
               </Menu.Item>

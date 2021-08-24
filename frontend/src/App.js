@@ -14,15 +14,18 @@ import FindStreamer2 from "./components/FindStreamer2";
 import PageRank from "./components/PageRank";
 import BC from "./components/BC";
 import scrollToComponent from "react-scroll-to-component";
+import ToTop from "./components/ToTop";
 
 class App extends Component {
   constructor(props) {
     super(props);
+    this.headerComp = React.createRef();
     this.games = React.createRef();
     this.teams = React.createRef();
     this.vips = React.createRef();
     this.moderators = React.createRef();
     this.streamers = React.createRef();
+    this.graphHeader = React.createRef();
     this.scrollToAppComponent = this.scrollToAppComponent.bind(this);
   }
   scrollToAppComponent = (compId) => {
@@ -67,22 +70,47 @@ class App extends Component {
           duration: 500,
           ease: "inCirc",
         });
+        break;
+      case "GraphHeader":
+        scrollToComponent(this.graphHeader.current, {
+          offset: 0,
+          align: "top",
+          duration: 500,
+          ease: "inCirc",
+        });
+        break;
+      case "HeaderComp":
+        console.log("header");
+        scrollToComponent(this.headerComp.current, {
+          offset: 0,
+          align: "top",
+          duration: 500,
+          ease: "inCirc",
+        });
     }
+  };
+
+  handleClick = (e) => {
+    this.scrollToAppComponent(e.target.id);
   };
   render() {
     return (
       <div>
-        <HeaderComp scrollTarget={this.scrollToAppComponent} />
+        <HeaderComp
+          ref={this.headerComp}
+          scrollTarget={this.scrollToAppComponent}
+        />
         <Games ref={this.games} />
         <Teams ref={this.teams} />
         <Vips ref={this.vips} />
         <Moderators ref={this.moderators} />
         <Streamers ref={this.streamers} />
-        <GraphHeader />
+        <GraphHeader ref={this.graphHeader} />
         <FindStreamer />
         <FindStreamer2 />
         <PageRank />
         <BC />
+        <ToTop handleClickToTop={this.scrollToAppComponent} />
       </div>
     );
   }

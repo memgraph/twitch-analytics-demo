@@ -9,7 +9,8 @@ import {
   Icon,
 } from "semantic-ui-react";
 
-function TwitchHeading() {
+function TwitchHeading(props) {
+  const handleClick = (e) => props.handleClickGraph(e.target.id);
   return (
     <Container text>
       <Header
@@ -33,9 +34,12 @@ function TwitchHeading() {
           marginTop: "1.5em",
         }}
       />
-      <button id="GraphHeader" class="huge ui orange basic inverted button">
+      <button
+        id="GraphHeader"
+        onClick={handleClick}
+        class="huge ui orange basic inverted button"
+      >
         Graph visualization
-        <Icon name="right arrow" />
       </button>
     </Container>
   );
@@ -46,6 +50,7 @@ class HeaderComp extends Component {
   hideFixedMenu = () => this.setState({ fixed: false });
   showFixedMenu = () => this.setState({ fixed: true });
   handleClick = (e) => this.props.scrollTarget(e.target.id);
+  handleClickFromHeader = (id) => this.props.scrollTarget(id);
   render() {
     const { fixed } = this.state;
 
@@ -126,7 +131,7 @@ class HeaderComp extends Component {
               </Menu.Item>
             </Container>
           </Menu>
-          <TwitchHeading />
+          <TwitchHeading handleClickGraph={this.handleClickFromHeader} />
         </Segment>
       </Visibility>
     );

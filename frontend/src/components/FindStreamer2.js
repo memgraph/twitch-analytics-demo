@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { Grid, Segment, Label } from "semantic-ui-react";
+import { Grid, Segment } from "semantic-ui-react";
 import Graph from "./Graph";
 import LeftColumn from "./LeftColumn";
 import AutoCompleteGame from "./AutoCompleteGame";

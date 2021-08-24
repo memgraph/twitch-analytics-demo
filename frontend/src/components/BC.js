@@ -1,0 +1,75 @@
+import { Component } from "react";
+import { Grid, Segment } from "semantic-ui-react";
+import GraphBC from "./GraphBC";
+import LeftColumn from "./LeftColumn";
+
+class BC extends Component {
+  _isMounted = false;
+  constructor(props) {
+    super(props);
+    this.state = {
+      error: null,
+      isLoaded: false,
+      nodes: [],
+    };
+  }
+
+  componentDidMount() {
+    this._isMounted = true;
+    fetch("/get-bc")
+      .then((res) => res.json())
+      .then(
+        (result) => {
+          this.setState({
+            isLoaded: true,
+            nodes: result.bc,
+          });
+        },
+        (error) => {
+          this.setState({
+            isLoaded: true,
+            error,
+          });
+        }
+      );
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+  render() {
+    const { error, isLoaded } = this.state;
+    if (error) {
+      return <div>Error: {error.message}</div>;
+    } else if (!isLoaded) {
+      return <div>Loading...</div>;
+    } else {
+      const header = "Which Twitch user has the most influence?";
+      const paragraph =
+        "Find out which user is most influential using Betweenness centrality algorithm.";
+      return (
+        <Segment style={{ padding: "8em 0em" }} vertical>
+          <Grid centered columns={2}>
+            <Grid.Column>
+              <LeftColumn header={header} paragraph={paragraph}></LeftColumn>
+            </Grid.Column>
+          </Grid>
+          <br></br>
+          <Grid centered columns={2}>
+            <Grid.Column>
+              <Segment
+                textAlign="center"
+                style={{ minHeight: 500, padding: "1em 0em" }}
+                vertical
+              >
+                <GraphBC nodes={this.state.nodes} />
+              </Segment>
+            </Grid.Column>
+          </Grid>
+        </Segment>
+      );
+    }
+  }
+}
+
+export default BC;

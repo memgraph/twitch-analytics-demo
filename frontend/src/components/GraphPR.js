@@ -2,31 +2,16 @@ import React from "react";
 import { useD3 } from "../hooks/useD3";
 import * as d3 from "d3";
 
-function Graph(props) {
+function GraphPR(props) {
   const ref = useD3(
     (svg) => {
       svg.selectAll("*").remove();
-      const height = 300;
-      const width = 300;
+      const height = 500;
+      const width = 500;
       const simulation = d3
         .forceSimulation(props.nodes)
-        .force(
-          "link",
-          d3
-            .forceLink(props.links)
-            .distance(100)
-            .id((d) => d.id)
-        )
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(width / 2, height / 2));
-      const link = svg
-        .append("g")
-        .attr("stroke", "#999")
-        .attr("stroke-opacity", 0.6)
-        .selectAll("line")
-        .data(props.links)
-        .join("line")
-        .attr("stroke-width", 1);
 
       const node = svg
         .append("g")
@@ -35,14 +20,11 @@ function Graph(props) {
         .selectAll("circle")
         .data(props.nodes)
         .join("circle")
-        .attr("r", 10)
-        .attr("class", "node")
-        .attr("fill", function (d) {
-          if (d.label === "Team") return "red";
-          else if (d.label === "Stream") return "orange";
-          else if (d.label === "Game") return "blue";
-          else if (d.label === "Language") return "purple";
+        .attr("r", function (d) {
+          return d.rank * 1000;
         })
+        .attr("class", "node")
+        .attr("fill", "#ff7701")
         .call(drag(simulation));
 
       var label = svg
@@ -51,27 +33,22 @@ function Graph(props) {
         .enter()
         .append("text")
         .text(function (d) {
-          return d.name; //return d.label for label
+          return d.name;
         })
         .style("text-anchor", "middle")
-        .style("fill", "white")
+        .style("fill", "#1b1c1d")
         .style("font-family", "Arial")
+        .attr("font-weight", "700")
         .style("font-size", "12px");
 
       simulation.on("tick", () => {
-        link
-          .attr("x1", (d) => d.source.x)
-          .attr("y1", (d) => d.source.y)
-          .attr("x2", (d) => d.target.x)
-          .attr("y2", (d) => d.target.y);
-
         node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
         label
           .attr("x", function (d) {
             return d.x;
           })
           .attr("y", function (d) {
-            return d.y - 15;
+            return d.y - d.rank * 1000 - 5;
           });
       });
     },
@@ -106,8 +83,8 @@ function Graph(props) {
     <svg
       ref={ref}
       style={{
-        height: 300,
-        width: 300,
+        height: 500,
+        width: "100%",
         marginRight: "0px",
         marginLeft: "0px",
       }}
@@ -115,4 +92,4 @@ function Graph(props) {
   );
 }
 
-export default Graph;
+export default GraphPR;

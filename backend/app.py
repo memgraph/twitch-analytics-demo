@@ -174,7 +174,8 @@ def get_page_rank():
                 dict_copy = page_rank_dict.copy()
                 page_rank_list.append(dict_copy)
         sorted_list = sorted(page_rank_list, key = lambda i: i['rank'], reverse=True)
-        response = {"page_rank" : sorted_list}
+        top_50_list = sorted_list[0:50]
+        response = {"page_rank" : top_50_list}
 
         return Response(json.dumps(response), status=200, mimetype="application/json")
 
@@ -235,7 +236,8 @@ def get_bc():
                 dict_copy = bc_dict.copy()
                 bc_list.append(dict_copy)
         sorted_list = sorted(bc_list, key = lambda i: i['betweenness_centrality'], reverse=True)
-        response = {"bc" : sorted_list}
+        top_50_list = sorted_list[0:50]
+        response = {"bc" : top_50_list}
 
         return Response(json.dumps(response), status=200, mimetype="application/json")
 

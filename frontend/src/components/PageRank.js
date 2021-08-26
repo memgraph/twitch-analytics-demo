@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { Grid, Segment, Header } from "semantic-ui-react";
+import { Grid, Segment, Header, Dimmer, Loader } from "semantic-ui-react";
 import GraphPR from "./GraphPR";
 
 class PageRank extends Component {
@@ -41,7 +41,15 @@ class PageRank extends Component {
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
-      return <div>Loading...</div>;
+      return (
+        <Segment style={{ padding: "8em 0em" }} vertical>
+          <Dimmer active inverted>
+            <Loader size="large" inverted>
+              Calculating PageRank
+            </Loader>
+          </Dimmer>
+        </Segment>
+      );
     } else {
       const header = "Who is the most popular Twitch user?";
       const paragraph =

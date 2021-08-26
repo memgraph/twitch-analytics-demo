@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { Grid, Segment, Header } from "semantic-ui-react";
+import { Grid, Segment, Header, Dimmer, Loader } from "semantic-ui-react";
 import AutoSearch from "./AutoSearch";
 import Graph from "./Graph";
 
@@ -51,7 +51,15 @@ class FindStreamer extends Component {
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
-      return <div>Loading...</div>;
+      return (
+        <Segment style={{ padding: "8em 0em" }} vertical>
+          <Dimmer active inverted>
+            <Loader size="large" inverted>
+              Finding your streamer
+            </Loader>
+          </Dimmer>
+        </Segment>
+      );
     } else {
       const header = "Get to know your favourite streamer";
       const paragraph =

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Grid, Segment, Header } from "semantic-ui-react";
+import { Grid, Segment, Header, Dimmer, Loader } from "semantic-ui-react";
 import DropdownComp from "./DropdownComp";
 import TableComp from "./TableComp";
 
@@ -99,7 +99,15 @@ class Streamers extends Component {
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isViewsLoaded || !isFollowersLoaded) {
-      return <div>Loading...</div>;
+      return (
+        <Segment style={{ padding: "8em 0em" }} vertical>
+          <Dimmer active inverted>
+            <Loader size="large" inverted>
+              Getting top streamers
+            </Loader>
+          </Dimmer>
+        </Segment>
+      );
     } else {
       return (
         <Segment style={{ padding: "8em 0em" }} vertical>

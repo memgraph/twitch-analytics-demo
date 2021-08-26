@@ -6,7 +6,6 @@ import {
   Segment,
   Visibility,
   Header,
-  Icon,
 } from "semantic-ui-react";
 
 function TwitchHeading(props) {

@@ -31,7 +31,9 @@ function AutoSearch(props) {
   const [hasError, setErrors] = useState(false);
   const [streamers, setStreamers] = useState({});
 
-  const handleClick = () => props.updateStateParent(value);
+  const handleClick = () => {
+    if (value !== "") props.updateStateParent(value);
+  };
 
   async function fetchNames() {
     const res = await fetch("/get-all-streamers-names");

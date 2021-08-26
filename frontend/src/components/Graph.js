@@ -78,6 +78,24 @@ function Graph(props) {
     [props.nodes.length]
   );
 
+  const refEmpty = useD3((svg) => {
+    svg.selectAll("*").remove();
+    const height = 300;
+    const width = 300;
+    var g = svg.append("g").attr("transform", function (d, i) {
+      return "translate(0,0)";
+    });
+    g.append("text")
+      .attr("x", width / 2)
+      .attr("y", height / 2)
+      .attr("fill", "#ff7701")
+      .attr("font-weight", "50")
+      .text("No data available")
+      .style("text-anchor", "middle")
+      .style("font-family", "Arial")
+      .style("font-size", "20px");
+  });
+
   const drag = (simulation) => {
     function dragstarted(event) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -102,17 +120,31 @@ function Graph(props) {
       .on("drag", dragged)
       .on("end", dragended);
   };
-  return (
-    <svg
-      ref={ref}
-      style={{
-        height: 300,
-        width: 300,
-        marginRight: "0px",
-        marginLeft: "0px",
-      }}
-    ></svg>
-  );
+  if (props.nodes.length !== 0) {
+    return (
+      <svg
+        ref={ref}
+        style={{
+          height: 300,
+          width: 300,
+          marginRight: "0px",
+          marginLeft: "0px",
+        }}
+      ></svg>
+    );
+  } else {
+    return (
+      <svg
+        ref={refEmpty}
+        style={{
+          height: 300,
+          width: 300,
+          marginRight: "0px",
+          marginLeft: "0px",
+        }}
+      ></svg>
+    );
+  }
 }
 
 export default Graph;

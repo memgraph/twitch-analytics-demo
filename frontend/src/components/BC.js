@@ -1,6 +1,7 @@
 import { Component } from "react";
 import { Grid, Segment, Header, Dimmer, Loader } from "semantic-ui-react";
 import GraphBC from "./GraphBC";
+import TableComp from "./TableComp";
 
 class BC extends Component {
   _isMounted = false;
@@ -51,9 +52,12 @@ class BC extends Component {
         </Segment>
       );
     } else {
+      const { nodes } = this.state;
       const header = "Which Twitch user has the most influence?";
       const paragraph =
         "Find out which user is most influential using Betweenness centrality algorithm.";
+      const headers = ["Streamer", "BC"];
+      let top10nodes = nodes.slice(0, 10);
       return (
         <Segment style={{ padding: "8em 0em" }} vertical>
           <Grid centered columns={2}>
@@ -74,8 +78,17 @@ class BC extends Component {
                 style={{ minHeight: 500, padding: "1em 0em" }}
                 vertical
               >
-                <GraphBC nodes={this.state.nodes} />
+                <GraphBC nodes={nodes} />
               </Segment>
+            </Grid.Column>
+            <Grid.Column width={2}>
+              <TableComp
+                headers={headers}
+                column_1={top10nodes}
+                column_2={top10nodes}
+                column_1_key="name"
+                column_2_key="betweenness_centrality"
+              ></TableComp>
             </Grid.Column>
           </Grid>
         </Segment>

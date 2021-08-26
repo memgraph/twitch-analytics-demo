@@ -1,6 +1,7 @@
 import { Component } from "react";
 import { Grid, Segment, Header, Dimmer, Loader } from "semantic-ui-react";
 import GraphPR from "./GraphPR";
+import TableComp from "./TableComp";
 
 class PageRank extends Component {
   _isMounted = false;
@@ -51,9 +52,12 @@ class PageRank extends Component {
         </Segment>
       );
     } else {
+      const { nodes } = this.state;
       const header = "Who is the most popular Twitch user?";
       const paragraph =
         "Find out which user is most popular using PageRank algorithm.";
+      const headers = ["Streamer", "Rank"];
+      let top10nodes = nodes.slice(0, 10);
       return (
         <Segment style={{ padding: "8em 0em" }} vertical>
           <Grid centered columns={2}>
@@ -66,7 +70,6 @@ class PageRank extends Component {
               </p>
             </Grid.Column>
           </Grid>
-          <br></br>
           <Grid centered columns={2}>
             <Grid.Column>
               <Segment
@@ -74,8 +77,17 @@ class PageRank extends Component {
                 style={{ minHeight: 500, padding: "1em 0em" }}
                 vertical
               >
-                <GraphPR nodes={this.state.nodes} />
+                <GraphPR nodes={nodes} />
               </Segment>
+            </Grid.Column>
+            <Grid.Column width={2}>
+              <TableComp
+                headers={headers}
+                column_1={top10nodes}
+                column_2={top10nodes}
+                column_1_key="name"
+                column_2_key="rank"
+              ></TableComp>
             </Grid.Column>
           </Grid>
         </Segment>

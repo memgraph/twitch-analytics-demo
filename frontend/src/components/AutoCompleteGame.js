@@ -1,13 +1,6 @@
 import _ from "lodash";
 import React, { useState } from "react";
-import {
-  Search,
-  Grid,
-  Label,
-  Button,
-  Segment,
-  Header,
-} from "semantic-ui-react";
+import { Search, Grid, Label, Button } from "semantic-ui-react";
 
 const initialState = {
   loading: false,
@@ -67,7 +60,10 @@ function AutoCompleteGame(props) {
   const [games, setGames] = useState({});
   const [languages, setLanguages] = useState({});
 
-  const handleClick = () => props.updateStateParent(value, valueLang);
+  const handleClick = () => {
+    if (value !== "" && valueLang !== "")
+      props.updateStateParent(value, valueLang);
+  };
 
   async function fetchLanguages() {
     const res = await fetch("/get-all-languages-names");

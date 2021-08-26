@@ -14,7 +14,6 @@ import FindStreamer2 from "./components/FindStreamer2";
 import PageRank from "./components/PageRank";
 import BC from "./components/BC";
 import scrollToComponent from "react-scroll-to-component";
-import ToTop from "./components/ToTop";
 
 class App extends Component {
   constructor(props) {
@@ -110,7 +109,6 @@ class App extends Component {
         <FindStreamer2 />
         <PageRank />
         <BC />
-        <ToTop handleClickToTop={this.scrollToAppComponent} />
       </div>
     );
   }

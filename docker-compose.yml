@@ -1,15 +1,63 @@
 version: "3"
+networks:
+  app-tier:
+    driver: bridge
 services:
+  zookeeper:
+    image: "bitnami/zookeeper:3.7"
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    networks:
+      - app-tier
+    logging:
+      driver: none
+  kafka:
+    image: "bitnami/kafka:2"
+    logging:
+      driver: none
+    ports:
+      - "9093:9093"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
+    depends_on:
+      - zookeeper
+    networks:
+      - app-tier
   memgraph-mage:
     image: memgraph/memgraph-mage
     user: root
     volumes:
       - ./memgraph/import-data:/usr/lib/memgraph/import-data
+      - ./memgraph/query_modules:/usr/lib/memgraph/query_modules
       - ./memgraph/mg_lib:/var/lib/memgraph
       - ./memgraph/mg_log:/var/log/memgraph
       - ./memgraph/mg_etc:/etc/memgraph
+    entrypoint:
+      [
+        "/usr/lib/memgraph/memgraph",
+        "--telemetry-enabled=false",
+        "--kafka-bootstrap-servers=kafka:9092",
+        "--query-modules-directory=/usr/lib/memgraph/query_modules",
+        "--log-level=TRACE",
+      ]
     ports:
       - "7687:7687"
+    networks:
+      - app-tier
+  core:
+    image: tianon/true
+    restart: "no"
+    depends_on:
+      - kafka
+      - memgraph-mage
   twitch-app:
     build: ./backend
     volumes:
@@ -21,12 +69,31 @@ services:
       MG_PORT: 7687
     depends_on:
       - memgraph-mage
+    networks:
+      - app-tier
   react-app:
-      build: ./frontend
-      volumes:
-        - ./frontend:/app
-        - /app/node_modules
-      ports:
-        - "3000:3000"
-      depends_on:
-        - twitch-app
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - twitch-app
+    networks:
+      - app-tier
+  twitch-stream:
+    build: ./twitch-stream
+    volumes:
+      - ./twitch-stream:/app
+    entrypoint:
+      ["python3", "dummy.py", "--file=chatters.csv", "--interval=2"]
+    environment:
+      KAFKA_IP: kafka
+      KAFKA_PORT: "9092"
+      MEMGRAPH_IP: memgraph-mage
+      MEMGRAPH_PORT: "7687"
+    depends_on:
+      - memgraph-mage
+    networks:
+      - app-tier

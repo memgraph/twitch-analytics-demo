@@ -1,2 +1,10 @@
 # Twitch Analytics Demo
-twitch analytics demo app
+
+## Starting the app
+
+You can simply start the app by running:
+
+```
+docker-compose build
+docker-compose up
+```

@@ -1,5 +1,13 @@
 import React, { Component } from "react";
-import { Grid, Segment, Header, Dimmer, Loader } from "semantic-ui-react";
+import {
+  Grid,
+  Segment,
+  Header,
+  Dimmer,
+  Loader,
+  Button,
+  Icon,
+} from "semantic-ui-react";
 import DropdownComp from "./DropdownComp";
 import TableComp from "./TableComp";
 
@@ -14,6 +22,7 @@ class Games extends Component {
       numOfGames: "10",
       header: "Top 10 games",
     };
+    this.handleRefresh = this.handleRefresh.bind(this);
   }
 
   fetchData(number) {
@@ -48,6 +57,10 @@ class Games extends Component {
     this.fetchData(num.value);
   };
 
+  handleRefresh = () => {
+    this.fetchData("10");
+  };
+
   render() {
     const { error, isLoaded, header } = this.state;
     const paragraph =
@@ -80,6 +93,17 @@ class Games extends Component {
                   updateStateParent={this.updateNumOfGames}
                   placeHolder="Number of games"
                 />
+                <br></br>
+                <Button
+                  inverted
+                  color="orange"
+                  icon
+                  labelPosition="left"
+                  onClick={this.handleRefresh}
+                >
+                  <Icon name="refresh" />
+                  Refresh
+                </Button>
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp

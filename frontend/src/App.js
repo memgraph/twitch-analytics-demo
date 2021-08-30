@@ -14,56 +14,26 @@ import FindStreamer2 from "./components/FindStreamer2";
 import PageRank from "./components/PageRank";
 import BC from "./components/BC";
 import scrollToComponent from "react-scroll-to-component";
+import { Divider, Tab } from "semantic-ui-react";
+import GeneralStats from "./components/GeneralStats";
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.headerComp = React.createRef();
-    this.games = React.createRef();
-    this.teams = React.createRef();
-    this.vips = React.createRef();
-    this.moderators = React.createRef();
-    this.streamers = React.createRef();
     this.graphHeader = React.createRef();
+    this.generalStats = React.createRef();
     this.scrollToAppComponent = this.scrollToAppComponent.bind(this);
+    this.state = {
+      color: "orange",
+    };
   }
+
+  handleColorChange = (e) => this.setState({ color: e.target.value });
   scrollToAppComponent = (compId) => {
-    console.log(compId);
     switch (compId) {
-      case "Games":
-        scrollToComponent(this.games.current, {
-          offset: 0,
-          align: "middle",
-          duration: 500,
-          ease: "inCirc",
-        });
-        break;
-      case "Teams":
-        scrollToComponent(this.teams.current, {
-          offset: 0,
-          align: "middle",
-          duration: 500,
-          ease: "inCirc",
-        });
-        break;
-      case "Vips":
-        scrollToComponent(this.vips.current, {
-          offset: 0,
-          align: "middle",
-          duration: 500,
-          ease: "inCirc",
-        });
-        break;
-      case "Moderators":
-        scrollToComponent(this.moderators.current, {
-          offset: 0,
-          align: "middle",
-          duration: 500,
-          ease: "inCirc",
-        });
-        break;
-      case "Streamers":
-        scrollToComponent(this.streamers.current, {
+      case "GeneralStats":
+        scrollToComponent(this.generalStats.current, {
           offset: 0,
           align: "top",
           duration: 500,
@@ -93,20 +63,69 @@ class App extends Component {
     this.scrollToAppComponent(e.target.id);
   };
   render() {
+    const { color } = this.state;
+    const panesStats = [
+      {
+        menuItem: { key: "games", icon: "game", content: "Games" },
+        render: () => (
+          <Tab.Pane>
+            <Games />
+          </Tab.Pane>
+        ),
+      },
+      {
+        menuItem: { key: "teams", icon: "users", content: "Teams" },
+        render: () => (
+          <Tab.Pane>
+            <Teams />
+          </Tab.Pane>
+        ),
+      },
+      {
+        menuItem: { key: "vips", icon: "star", content: "Vips" },
+        render: () => (
+          <Tab.Pane>
+            <Vips />
+          </Tab.Pane>
+        ),
+      },
+      {
+        menuItem: { key: "moderators", icon: "trophy", content: "Moderators" },
+        render: () => (
+          <Tab.Pane>
+            <Moderators />
+          </Tab.Pane>
+        ),
+      },
+      {
+        menuItem: {
+          key: "streamers",
+          icon: "user",
+          content: "Streamers",
+        },
+        render: () => (
+          <Tab.Pane>
+            <Streamers />
+          </Tab.Pane>
+        ),
+      },
+    ];
+
     return (
       <div>
         <HeaderComp
           ref={this.headerComp}
           scrollTarget={this.scrollToAppComponent}
         />
-        <Games ref={this.games} />
-        <Teams ref={this.teams} />
-        <Vips ref={this.vips} />
-        <Moderators ref={this.moderators} />
-        <Streamers ref={this.streamers} />
+        <Tab
+          ref={this.generalStats}
+          panes={panesStats}
+          menu={{ color, inverted: true, attached: false, tabular: false }}
+        />
         <GraphHeader ref={this.graphHeader} />
         <FindStreamer />
         <FindStreamer2 />
+
         <PageRank />
         <BC />
       </div>

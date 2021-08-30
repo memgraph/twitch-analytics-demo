@@ -1,5 +1,13 @@
 import React, { Component } from "react";
-import { Grid, Segment, Header, Dimmer, Loader } from "semantic-ui-react";
+import {
+  Grid,
+  Segment,
+  Header,
+  Dimmer,
+  Loader,
+  Button,
+  Icon,
+} from "semantic-ui-react";
 import DropdownComp from "./DropdownComp";
 import TableComp from "./TableComp";
 
@@ -48,6 +56,10 @@ class Moderators extends Component {
     this.fetchData(num.value);
   };
 
+  handleRefresh = () => {
+    this.fetchData("10");
+  };
+
   render() {
     const { error, isLoaded, header } = this.state;
     const headers = ["Moderator", "Number of channels"];
@@ -80,6 +92,17 @@ class Moderators extends Component {
                   updateStateParent={this.updateNumOfMods}
                   placeHolder="Number of moderators"
                 />
+                <br></br>
+                <Button
+                  inverted
+                  color="orange"
+                  icon
+                  labelPosition="left"
+                  onClick={this.handleRefresh}
+                >
+                  <Icon name="refresh" />
+                  Refresh
+                </Button>
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp

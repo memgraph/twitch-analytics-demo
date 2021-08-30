@@ -6,10 +6,10 @@ import {
   Segment,
   Visibility,
   Header,
+  Grid,
 } from "semantic-ui-react";
 
 function TwitchHeading(props) {
-  const handleClick = (e) => props.handleClickGraph(e.target.id);
   return (
     <Container text>
       <Header
@@ -33,13 +33,6 @@ function TwitchHeading(props) {
           marginTop: "1.5em",
         }}
       />
-      <button
-        id="GraphHeader"
-        onClick={handleClick}
-        class="huge ui orange basic inverted button"
-      >
-        Graph visualization
-      </button>
     </Container>
   );
 }
@@ -62,7 +55,7 @@ class HeaderComp extends Component {
         <Segment
           inverted
           textAlign="center"
-          style={{ minHeight: 700, padding: "1em 0em" }}
+          style={{ minHeight: 500, padding: "1em 0em" }}
           vertical
         >
           <Menu
@@ -72,63 +65,29 @@ class HeaderComp extends Component {
             secondary={!fixed}
             size="large"
           >
-            <Container>
-              <Menu.Item as="a">
-                <Button
-                  id="Games"
-                  onClick={this.handleClick}
-                  as="a"
-                  inverted={!fixed}
-                  color="orange"
-                >
-                  Games
-                </Button>
-              </Menu.Item>
-              <Menu.Item as="a">
-                <Button
-                  id="Teams"
-                  onClick={this.handleClick}
-                  as="a"
-                  inverted={!fixed}
-                  color="orange"
-                >
-                  Teams
-                </Button>
-              </Menu.Item>
-              <Menu.Item as="a">
-                <Button
-                  id="Vips"
-                  onClick={this.handleClick}
-                  as="a"
-                  inverted={!fixed}
-                  color="orange"
-                >
-                  Vips
-                </Button>
-              </Menu.Item>
-              <Menu.Item as="a">
-                <Button
-                  id="Moderators"
-                  onClick={this.handleClick}
-                  as="a"
-                  inverted={!fixed}
-                  color="orange"
-                >
-                  Moderators
-                </Button>
-              </Menu.Item>
-              <Menu.Item as="a">
-                <Button
-                  id="Streamers"
-                  onClick={this.handleClick}
-                  as="a"
-                  inverted={!fixed}
-                  color="orange"
-                >
-                  Streamers
-                </Button>
-              </Menu.Item>
-            </Container>
+            <Menu.Item as="a">
+              <Button
+                id="GeneralStats"
+                onClick={this.handleClick}
+                as="a"
+                inverted={!fixed}
+                color="orange"
+              >
+                General statistics
+              </Button>
+            </Menu.Item>
+
+            <Menu.Item as="a">
+              <Button
+                id="GraphHeader"
+                onClick={this.handleClick}
+                as="a"
+                inverted={!fixed}
+                color="orange"
+              >
+                Graph visualization
+              </Button>
+            </Menu.Item>
           </Menu>
           <TwitchHeading handleClickGraph={this.handleClickFromHeader} />
         </Segment>

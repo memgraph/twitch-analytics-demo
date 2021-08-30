@@ -1,5 +1,13 @@
 import React, { Component } from "react";
-import { Grid, Segment, Header, Dimmer, Loader } from "semantic-ui-react";
+import {
+  Grid,
+  Segment,
+  Header,
+  Dimmer,
+  Loader,
+  Button,
+  Icon,
+} from "semantic-ui-react";
 import DropdownComp from "./DropdownComp";
 import TableComp from "./TableComp";
 
@@ -82,6 +90,14 @@ class Streamers extends Component {
     this.fetchDataFollowers(num.value);
   };
 
+  handleRefreshFollowers = () => {
+    this.fetchDataFollowers("10");
+  };
+
+  handleRefreshViews = () => {
+    this.fetchDataViews("10");
+  };
+
   render() {
     const {
       error,
@@ -123,6 +139,17 @@ class Streamers extends Component {
                   updateStateParent={this.updateNumOfStrViews}
                   placeHolder="Number of streamers"
                 />
+                <br></br>
+                <Button
+                  inverted
+                  color="orange"
+                  icon
+                  labelPosition="left"
+                  onClick={this.handleRefreshViews}
+                >
+                  <Icon name="refresh" />
+                  Refresh
+                </Button>
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp
@@ -147,6 +174,17 @@ class Streamers extends Component {
                   updateStateParent={this.updateNumOfStrFollowers}
                   placeHolder="Number of streamers"
                 />
+                <br></br>
+                <Button
+                  inverted
+                  color="orange"
+                  icon
+                  labelPosition="left"
+                  onClick={this.handleRefreshFollowers}
+                >
+                  <Icon name="refresh" />
+                  Refresh
+                </Button>
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp

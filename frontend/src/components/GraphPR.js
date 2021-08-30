@@ -7,7 +7,7 @@ function GraphPR(props) {
     (svg) => {
       svg.selectAll("*").remove();
       const height = 500;
-      const width = 500;
+      const width = 1000;
       const simulation = d3
         .forceSimulation(props.nodes)
         .force("charge", d3.forceManyBody())

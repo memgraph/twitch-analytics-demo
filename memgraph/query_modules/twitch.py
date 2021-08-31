@@ -12,7 +12,7 @@ def chatters(messages: mgp.Messages
         comment_info = json.loads(message.payload().decode('utf8'))
         result_queries.append(
             mgp.Record(
-                query=("MERGE (p {id: $user_id}) "
+                query=("MERGE (p:User {id: $user_id}) "
                        "MERGE (c:User {name: $chatter_login}) "
                        "CREATE (c)-[:CHATTER]->(s)"),
                 parameters={

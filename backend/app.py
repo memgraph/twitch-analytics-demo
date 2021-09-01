@@ -33,13 +33,9 @@ def parse_args():
         "--populate",
         dest="populate",
         action="store_true",
+        help="Run app with data loading."
     )
-    parser.add_argument(
-        "--no-populate",
-        dest="populate",
-        action="store_false",
-    )
-    parser.set_defaults(populate=True)
+    parser.set_defaults(populate=False)
     log.info(__doc__)
     return parser.parse_args()
 

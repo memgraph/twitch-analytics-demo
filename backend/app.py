@@ -1,17 +1,14 @@
 import logging
-from argparse import ArgumentParser
-from gqlalchemy import Match, Memgraph
-import time
-from functools import wraps
-from flask import Flask, Response, render_template
-from pathlib import Path
-import json
 import os
-
-from werkzeug.wrappers import response
+import time
+from argparse import ArgumentParser
+from flask import Flask, Response, render_template
+from functools import wraps
+from gqlalchemy import Match, Memgraph
+from json import dumps
+from pathlib import Path
 
 log = logging.getLogger(__name__)
-
 
 def init_log():
     logging.basicConfig(level=logging.DEBUG)
@@ -21,22 +18,11 @@ def init_log():
 init_log()
 
 def parse_args():
-    """
-    Parse command line arguments.
-    """
+    """Parse command line arguments."""
+
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--host", default="0.0.0.0", help="Host address.")
     parser.add_argument("--port", default=5000, type=int, help="App port.")
-    parser.add_argument(
-        "--template-folder",
-        default="public/template",
-        help="Path to the directory with flask templates.",
-    )
-    parser.add_argument(
-        "--static-folder",
-        default="public",
-        help="Path to the directory with flask static files.",
-    )
     parser.add_argument(
         "--debug",
         default=True,
@@ -54,18 +40,17 @@ def parse_args():
         action="store_false",
     )
     parser.set_defaults(populate=True)
-    print(__doc__)
+    log.info(__doc__)
     return parser.parse_args()
 
 
 args = parse_args()
-log.info("POPULATE:" + str(args.populate))
 
 memgraph = Memgraph()
 connection_established = False
-while(not connection_established):
+while not connection_established:
     try:
-        if (memgraph._get_cached_connection().is_active()):
+        if memgraph._get_cached_connection().is_active():
             connection_established = True
     except:
         log.info("Memgraph probably isn't running.")
@@ -73,9 +58,6 @@ while(not connection_established):
 
 app = Flask(
     __name__,
-    template_folder=args.template_folder,
-    static_folder=args.static_folder,
-    static_url_path="",
 )
 
 def log_time(func):
@@ -95,9 +77,6 @@ def load_twitch_data():
         path_vips = Path("/usr/lib/memgraph/import-data/vips_2.csv")
         path_moderators = Path("/usr/lib/memgraph/import-data/moderators_2.csv")
         path_chatters = Path("/usr/lib/memgraph/import-data/new_chatters.csv")
-
-
-        # maybe memgraph.execute() in new gqlalchemy
 
         memgraph.execute(
             f"""LOAD CSV FROM "{path_streams}"
@@ -152,7 +131,6 @@ def load_twitch_data():
             CREATE (c)-[:CHATTER]->(s);"""
         )
 
-# BadBoyHalo has highest bc and pagerank
 @app.route("/get-page-rank", methods=["GET"])
 @log_time
 def get_page_rank():
@@ -161,11 +139,12 @@ def get_page_rank():
     try:
         results = memgraph.execute_and_fetch(
             """CALL pagerank.get()
-            YIELD node, rank; """
+            YIELD node, rank; """ #sort in memgraph (order by)
         )
 
         page_rank_dict = dict()
         page_rank_list = list()
+
         for result in results:
             if(list(result["node"].labels)[0] == "User" or list(result["node"].labels)[0] == "Stream"):
                 user_name = result["node"].properties["name"]
@@ -173,19 +152,18 @@ def get_page_rank():
                 page_rank_dict = {"name": user_name, "rank": rank}
                 dict_copy = page_rank_dict.copy()
                 page_rank_list.append(dict_copy)
+
         sorted_list = sorted(page_rank_list, key = lambda i: i['rank'], reverse=True)
         top_50_list = sorted_list[0:50]
         response = {"page_rank" : top_50_list}
 
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching users' ranks using pagerank went wrong.")
         log.info(e)
         return ("", 500)
 
-
-# returning one component due to the whole graph
 @app.route("/get-wcc", methods=["GET"])
 @log_time
 def get_wcc():
@@ -209,25 +187,27 @@ def get_wcc():
         log.info("Num of components")
         log.info(len(components_set))
         response = {"components": wcc_list}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
     except Exception as e:
         log.info("Fetching weakly connected components went wrong.")
         log.info(e)
         return ("", 500)
 
-# BadBoyHalo has highest bc and pagerank
+
 @app.route("/get-bc", methods=["GET"])
 @log_time
 def get_bc():
     """Call the Betweenness centrality procedure and return the results."""
+
     try:
         results = memgraph.execute_and_fetch(
             """CALL betweenness_centrality.get()
-            YIELD node, betweeenness_centrality;"""
+            YIELD node, betweeenness_centrality;""" #sort in memgraph (order by)
         )
 
         bc_dict = dict()
         bc_list = list()
+
         for result in results:
             if(list(result["node"].labels)[0] == "User" or list(result["node"].labels)[0] == "Stream"):
                 user_name = result["node"].properties["name"]
@@ -235,11 +215,12 @@ def get_bc():
                 bc_dict = {"name": user_name, "betweenness_centrality": bc}
                 dict_copy = bc_dict.copy()
                 bc_list.append(dict_copy)
+
         sorted_list = sorted(bc_list, key = lambda i: i['betweenness_centrality'], reverse=True)
         top_50_list = sorted_list[0:50]
         response = {"bc" : top_50_list}
 
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching betweenness centrality went wrong.")
@@ -249,22 +230,20 @@ def get_bc():
 @log_time
 def load_data():
     """Load data into the database."""
-    if args.populate:
-        log.info("LOADING DATA INTO MEMGRAPH")
-        try:
-            memgraph.drop_database()
-            load_twitch_data()
-            return Response(status=200)
-        except Exception as e:
-            log.info("Data loading error.")
-            log.info(e)
-            return Response(status=500)
-    else:
-        log.info("DATA IS ALREADY LOADED")
-        return Response(status=200)
+
+    if not args.populate:
+        log.info("Data is loaded in Memgraph.")
+        return
+    log.info("Loading data into Memgraph.")
+    try:
+        memgraph.drop_database()
+        load_twitch_data()
+    except Exception as e:
+        log.info("Data loading error.")
 
 
 
+# is this used anywhere?
 @app.route("/get-graph", methods=["GET"])
 @log_time
 def get_data():
@@ -283,7 +262,7 @@ def get_data():
         for result in results:
             source_id = result["from"].properties['id']
             target_id = result["to"].properties['name']
-            source_label = list(result["from"].labels)[0] # can be User or Stream
+            source_label = list(result["from"].labels)[0]
             target_label = list(result["to"].labels)[0]
             source_name = result["from"].properties['name']
             target_name = target_id
@@ -305,7 +284,7 @@ def get_data():
 
         response = {"nodes": nodes, "links": links}
 
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Data fetching went wrong.")
@@ -316,14 +295,14 @@ def get_data():
 @app.route("/get-top-streamers-by-views/<num_of_streamers>", methods=["GET"])
 @log_time
 def get_top_streamers_by_views(num_of_streamers):
-    """Get top _num_ streamers by total number of views."""
+    """Get top num_of_streamers streamers by total number of views."""
 
     try:
         results = memgraph.execute_and_fetch(
-            """MATCH(u:Stream)
+            f"""MATCH(u:Stream)
             RETURN u.name as streamer, u.totalViewCount as total_view_count
             ORDER BY total_view_count DESC
-            LIMIT """ + str(num_of_streamers) + """;"""
+            LIMIT {num_of_streamers};"""
         )
 
         streamers_list = list()
@@ -344,7 +323,7 @@ def get_top_streamers_by_views(num_of_streamers):
             for view_count in views_list
         ]
         response = {"streamers": streamers, "views": views}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top streamers by views went wrong.")
@@ -355,22 +334,25 @@ def get_top_streamers_by_views(num_of_streamers):
 @app.route("/get-top-streamers-by-followers/<num_of_streamers>", methods=["GET"])
 @log_time
 def get_top_streamers_by_followers(num_of_streamers):
-    """Get top _num_ streamers by total number of followers."""
+    """Get top num_of_streamers streamers by total number of followers."""
 
     try:
         results = memgraph.execute_and_fetch(
-            """MATCH(u:Stream)
+            f"""MATCH(u:Stream)
             RETURN u.name as streamer, u.followers as num_of_followers
             ORDER BY num_of_followers DESC
-            LIMIT """ + str(num_of_streamers) + """;"""
+            LIMIT {num_of_streamers};"""
         )
+
         streamers_list = list()
         followers_list = list()
+
         for result in results:
             streamer_name = result['streamer']
             num_of_followers = result['num_of_followers']
             streamers_list.append(streamer_name)
             followers_list.append(num_of_followers)
+
         streamers = [
             {"name": streamer_name}
             for streamer_name in streamers_list
@@ -379,8 +361,9 @@ def get_top_streamers_by_followers(num_of_streamers):
             {"followers": follower_count}
             for follower_count in followers_list
         ]
+
         response = {"streamers": streamers, "followers": followers}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top streamers by followers went wrong.")
@@ -395,10 +378,10 @@ def get_top_games(num_of_games):
 
     try:
         results = memgraph.execute_and_fetch(
-            """MATCH (u:User)-[:PLAYS]->(g:Game)
+            f"""MATCH (u:User)-[:PLAYS]->(g:Game)
             RETURN g.name as game_name, COUNT(u) as number_of_players
             ORDER BY number_of_players DESC
-            LIMIT """ + str(num_of_games) + """;"""
+            LIMIT {num_of_games};"""
         )
 
         games_list = list()
@@ -418,8 +401,9 @@ def get_top_games(num_of_games):
             {"players": player_count}
             for player_count in players_list
         ]
+
         response = {"games": games, "players": players}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top games went wrong.")
@@ -430,14 +414,14 @@ def get_top_games(num_of_games):
 @app.route("/get-top-teams/<num_of_teams>", methods=["GET"])
 @log_time
 def get_top_teams(num_of_teams):
-    """Get top _num_ teams by number of streamers who are part of them."""
+    """Get top num_of_teams teams by number of streamers who are part of them."""
 
     try:
         results = memgraph.execute_and_fetch(
-            """MATCH (u:User)-[:IS_PART_OF]->(t:Team)
+            f"""MATCH (u:User)-[:IS_PART_OF]->(t:Team)
             RETURN t.name as team_name, COUNT(u) as number_of_members
             ORDER BY number_of_members DESC
-            LIMIT """ + str(num_of_teams) + """;"""
+            LIMIT {num_of_teams};"""
         )
 
         teams_list = list()
@@ -457,8 +441,9 @@ def get_top_teams(num_of_teams):
             {"members": member_count}
             for member_count in members_list
         ]
+
         response = {"teams": teams, "members": members}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
@@ -469,14 +454,14 @@ def get_top_teams(num_of_teams):
 @app.route("/get-top-vips/<num_of_vips>", methods=["GET"])
 @log_time
 def get_top_vips(num_of_vips):
-    """Get top _num_of_vips vips by number of streamers who gave them the vip badge."""
+    """Get top num_of_vips vips by number of streamers who gave them the vip badge."""
 
     try:
         results = memgraph.execute_and_fetch(
-            """MATCH (u:User)<-[:VIP]-(v:User)
+            f"""MATCH (u:User)<-[:VIP]-(v:User)
             RETURN v.name as vip_name, COUNT(u) as number_of_streamers
             ORDER BY number_of_streamers DESC
-            LIMIT """ + str(num_of_vips) + """;"""
+            LIMIT {num_of_vips};"""
         )
 
         vips_list = list()
@@ -497,7 +482,7 @@ def get_top_vips(num_of_vips):
             for streamer_count in streamers_list
         ]
         response = {"vips": vips, "streamers": streamers}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top vips went wrong.")
@@ -512,10 +497,10 @@ def get_top_moderators(num_of_moderators):
 
     try:
         results = memgraph.execute_and_fetch(
-            """MATCH (u:User)<-[:MODERATOR]-(m:User)
+            f"""MATCH (u:User)<-[:MODERATOR]-(m:User)
             RETURN m.name as moderator_name, COUNT(u) as number_of_streamers
             ORDER BY number_of_streamers DESC
-            LIMIT """ + str(num_of_moderators) + """;"""
+            LIMIT {num_of_moderators};"""
         )
 
         moderators_list = list()
@@ -536,7 +521,7 @@ def get_top_moderators(num_of_moderators):
             for streamer_count in streamers_list
         ]
         response = {"moderators": moderators, "streamers": streamers}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top moderators went wrong.")
@@ -552,7 +537,7 @@ def get_streamer(streamer_name):
     try:
         # Check whether streamer with the given name exists
         counters = memgraph.execute_and_fetch(
-            """MATCH (u:User {name:'""" + str(streamer_name) + """'})
+            f"""MATCH (u:User {{name:"{streamer_name}"}})
             RETURN COUNT(u) AS name_counter;"""
         )
 
@@ -599,7 +584,7 @@ def get_streamer(streamer_name):
             links = []
 
         response = {"nodes": nodes, "links": links}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
 
 
@@ -623,7 +608,7 @@ def get_languages():
 
         for result in results:
             source_name = result['language'].properties['name']
-            source_label = 'Language' #list(result['u'].labels)[0] can be User or Stream
+            source_label = 'Language'
             user_count = result['user_count']
 
             nodes_set.add((source_label, source_name, user_count))
@@ -636,7 +621,7 @@ def get_languages():
 
 
         response = {"nodes": nodes, "links": links}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching languages went wrong.")
@@ -650,8 +635,8 @@ def get_streamers(language, game):
     """Get all streamers who stream certain game in certain language."""
     try:
         results = memgraph.execute_and_fetch(
-            """MATCH(u:Stream)-[:SPEAKS]->(l:Language {name:'""" + str(language) + """'})
-            MATCH (u)-[:PLAYS]->(g:Game {name:'""" + str(game) + """'})
+            f"""MATCH(u:Stream)-[:SPEAKS]->(l:Language {{name: "{language}"}})
+            MATCH (u)-[:PLAYS]->(g:Game {{name:"{game}"}})
             RETURN u,g,l;"""
         )
 
@@ -694,7 +679,7 @@ def get_streamers(language, game):
         links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
 
         response = {"nodes": nodes, "links": links}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Data fetching went wrong.")
@@ -720,7 +705,7 @@ def get_all_streamers_names():
             streamers_list.append(streamer)
 
         response = {"streamers": streamers_list}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
@@ -746,7 +731,7 @@ def get_all_games_names():
             games_list.append(game)
 
         response = {"games": games_list}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
@@ -756,7 +741,7 @@ def get_all_games_names():
 @app.route("/get-all-languages-names", methods=["GET"])
 @log_time
 def get_all_languages_names():
-    """Get the names of all streamers."""
+    """Get the names of all languages."""
     try:
         results = memgraph.execute_and_fetch(
             """MATCH(n:Language)
@@ -771,7 +756,7 @@ def get_all_languages_names():
             languages_list.append(language)
 
         response = {"languages": languages_list}
-        return Response(json.dumps(response), status=200, mimetype="application/json")
+        return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
@@ -782,12 +767,10 @@ def get_all_languages_names():
 def index():
     return render_template("index.html")
 
-
 def main():
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         load_data()
     app.run(host=args.host, port=args.port, debug=args.debug)
-
 
 if __name__ == "__main__":
     main()

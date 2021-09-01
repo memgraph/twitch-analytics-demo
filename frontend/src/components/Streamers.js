@@ -157,34 +157,20 @@ class Streamers extends Component {
                   {headerViews}
                 </Header>
                 <p style={{ fontSize: "1.33em" }}>{paragraphViews}</p>
-
                 <br></br>
-                <RadioPick
-                  updateStateParent={this.changeFetch}
-                  defaultValue="views"
-                />
-
-                <br></br>
-                <DropdownStreamers updateStateParent={this.changeFetch} />
-                <br></br>
-                <br></br>
-                <DropdownComp
-                  options={options}
-                  updateStateParent={this.changeFetch}
-                  placeHolder="Sort by"
-                />
+                <Grid.Row>
+                  <DropdownStreamers updateStateParent={this.changeFetch} />
+                  <Button
+                    inverted
+                    color="orange"
+                    icon
+                    onClick={this.handleRefreshViews}
+                  >
+                    <Icon name="refresh" />
+                  </Button>
+                </Grid.Row>
                 <br></br>
                 <br></br>
-                <Button
-                  inverted
-                  color="orange"
-                  icon
-                  labelPosition="left"
-                  onClick={this.handleRefreshViews}
-                >
-                  <Icon name="refresh" />
-                  Refresh
-                </Button>
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp
@@ -210,34 +196,20 @@ class Streamers extends Component {
                   {headerFollowers}
                 </Header>
                 <p style={{ fontSize: "1.33em" }}>{paragraphFollowers}</p>
-
                 <br></br>
-                <RadioPick
-                  updateStateParent={this.changeFetch}
-                  defaultValue="followers"
-                />
-
-                <br></br>
-                <DropdownStreamers updateStateParent={this.changeFetch} />
-                <br></br>
-                <br></br>
-                <DropdownComp
-                  options={options}
-                  updateStateParent={this.changeFetch}
-                  placeHolder="Sort by"
-                />
+                <Grid.Row>
+                  <DropdownStreamers updateStateParent={this.changeFetch} />
+                  <Button
+                    inverted
+                    color="orange"
+                    icon
+                    onClick={this.handleRefreshFollowers}
+                  >
+                    <Icon name="refresh" />
+                  </Button>
+                </Grid.Row>
                 <br></br>
                 <br></br>
-                <Button
-                  inverted
-                  color="orange"
-                  icon
-                  labelPosition="left"
-                  onClick={this.handleRefreshFollowers}
-                >
-                  <Icon name="refresh" />
-                  Refresh
-                </Button>
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp

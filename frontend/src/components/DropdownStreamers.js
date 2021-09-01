@@ -2,7 +2,9 @@ import React, { Component } from "react";
 import { Dropdown } from "semantic-ui-react";
 
 class DropdownStreamers extends Component {
-  state = {};
+  state = {
+    value: "Followers",
+  };
 
   twoCalls = (e, { value }) => {
     this.handleChange(e, { value });
@@ -21,7 +23,7 @@ class DropdownStreamers extends Component {
     const { value } = this.state;
     return (
       <Dropdown
-        text="Sort by"
+        text={value}
         icon="sort"
         floating
         labeled
@@ -32,13 +34,13 @@ class DropdownStreamers extends Component {
           <Dropdown.Item
             icon="eye"
             text="Views"
-            value="views"
+            value="Views"
             onClick={this.twoCalls}
           />
           <Dropdown.Item
             icon="user plus"
             text="Followers"
-            value="followers"
+            value="Followers"
             onClick={this.twoCalls}
           />
         </Dropdown.Menu>

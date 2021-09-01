@@ -105,7 +105,7 @@ class Streamers extends Component {
 
   changeFetch = (pick) => {
     console.log(pick.value);
-    if (pick.value === "views") {
+    if (pick.value === "Views") {
       console.log("you've picked by views");
       this.setState({ byViews: true });
       this.fetchDataViews("10");
@@ -117,10 +117,6 @@ class Streamers extends Component {
   };
 
   render() {
-    const options = [
-      { key: "followers", text: "followers", value: "followers" },
-      { key: "views", text: "views", value: "views" },
-    ];
     const {
       error,
       isViewsLoaded,
@@ -130,10 +126,10 @@ class Streamers extends Component {
       byViews,
     } = this.state;
     const paragraphViews =
-      "Check out most popular streamers by view count. Choose a number of top streamers you would like to see:";
+      "Check out most popular streamers by view count. Change the option below if you want to get the most popular streamers by their number of followers.";
     const headersViews = ["Streamer", "Number of views"];
     const paragraphFollowers =
-      "Find out which streamers have the largest fan base. Choose a number of top streamers you would like to see:";
+      "Find out which streamers have the largest fan base. Change the option below if you want to get the most popular streamers by the number of views.";
     const headersFollowers = ["Streamer", "Number of followers"];
     if (error) {
       return <div>Error: {error.message}</div>;

@@ -21,19 +21,19 @@ export default class RadioPick extends Component {
       <Form>
         <Form.Field>
           <Radio
-            label="By views"
+            label="By followers"
             name="radioGroup"
-            value="views"
-            checked={this.state.value === "views"}
+            value="followers"
+            checked={this.state.value === "followers"}
             onChange={this.twoCalls}
           />
         </Form.Field>
         <Form.Field>
           <Radio
-            label="By followers"
+            label="By views"
             name="radioGroup"
-            value="followers"
-            checked={this.state.value === "followers"}
+            value="views"
+            checked={this.state.value === "views"}
             onChange={this.twoCalls}
           />
         </Form.Field>

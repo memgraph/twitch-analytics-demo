@@ -60,6 +60,12 @@ class Vips extends Component {
   };
 
   render() {
+    const options = [
+      { key: 5, text: "5", value: 5 },
+      { key: 10, text: "10", value: 10 },
+      { key: 15, text: "15", value: 15 },
+      { key: 20, text: "20", value: 20 },
+    ];
     const { error, isLoaded, header } = this.state;
     const paragraph =
       "Find out which user has the most vip badges. Choose a number of top vips you would like to see:";
@@ -88,6 +94,7 @@ class Vips extends Component {
                 <p style={{ fontSize: "1.33em" }}>{paragraph}</p>
                 <br></br>
                 <DropdownComp
+                  options={options}
                   updateStateParent={this.updateNumOfVips}
                   placeHolder="Number of vips"
                 />

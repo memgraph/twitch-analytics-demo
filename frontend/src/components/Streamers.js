@@ -9,6 +9,8 @@ import {
   Icon,
 } from "semantic-ui-react";
 import DropdownComp from "./DropdownComp";
+import DropdownStreamers from "./DropdownStreamers";
+import RadioPick from "./RadioPick";
 import TableComp from "./TableComp";
 
 class Streamers extends Component {
@@ -26,6 +28,7 @@ class Streamers extends Component {
       numOfStrFollowers: "10",
       headerViews: "Top 10 streamers by views",
       headerFollowers: "Top 10 streamers by followers",
+      byViews: true,
     };
   }
 
@@ -50,6 +53,7 @@ class Streamers extends Component {
     this.setState({
       numOfStrFollowers: number,
       headerViews: "Top " + number + " streamers by views",
+      byViews: true,
     });
   }
 
@@ -74,6 +78,7 @@ class Streamers extends Component {
     this.setState({
       numOfStrViews: number,
       headerFollowers: "Top " + number + " streamers by followers",
+      byViews: false,
     });
   }
 
@@ -98,13 +103,31 @@ class Streamers extends Component {
     this.fetchDataViews("10");
   };
 
+  changeFetch = (pick) => {
+    console.log(pick.value);
+    if (pick.value === "views") {
+      console.log("you've picked by views");
+      this.setState({ byViews: true });
+      this.fetchDataViews("10");
+    } else {
+      console.log("you've picked by followers");
+      this.setState({ byViews: false });
+      this.fetchDataFollowers("10");
+    }
+  };
+
   render() {
+    const options = [
+      { key: "followers", text: "followers", value: "followers" },
+      { key: "views", text: "views", value: "views" },
+    ];
     const {
       error,
       isViewsLoaded,
       isFollowersLoaded,
       headerViews,
       headerFollowers,
+      byViews,
     } = this.state;
     const paragraphViews =
       "Check out most popular streamers by view count. Choose a number of top streamers you would like to see:";
@@ -124,7 +147,7 @@ class Streamers extends Component {
           </Dimmer>
         </Segment>
       );
-    } else {
+    } else if (byViews) {
       return (
         <Segment style={{ padding: "8em 0em" }} vertical>
           <Grid container stackable verticalAlign="middle">
@@ -134,11 +157,23 @@ class Streamers extends Component {
                   {headerViews}
                 </Header>
                 <p style={{ fontSize: "1.33em" }}>{paragraphViews}</p>
+
+                <br></br>
+                <RadioPick
+                  updateStateParent={this.changeFetch}
+                  defaultValue="views"
+                />
+
+                <br></br>
+                <DropdownStreamers updateStateParent={this.changeFetch} />
+                <br></br>
                 <br></br>
                 <DropdownComp
-                  updateStateParent={this.updateNumOfStrViews}
-                  placeHolder="Number of streamers"
+                  options={options}
+                  updateStateParent={this.changeFetch}
+                  placeHolder="Sort by"
                 />
+                <br></br>
                 <br></br>
                 <Button
                   inverted
@@ -162,6 +197,12 @@ class Streamers extends Component {
               </Grid.Column>
             </Grid.Row>
           </Grid>
+        </Segment>
+      );
+    } else {
+      console.log(byViews);
+      return (
+        <Segment style={{ padding: "8em 0em" }} vertical>
           <Grid container stackable verticalAlign="middle">
             <Grid.Row>
               <Grid.Column width={8}>
@@ -169,11 +210,23 @@ class Streamers extends Component {
                   {headerFollowers}
                 </Header>
                 <p style={{ fontSize: "1.33em" }}>{paragraphFollowers}</p>
+
+                <br></br>
+                <RadioPick
+                  updateStateParent={this.changeFetch}
+                  defaultValue="followers"
+                />
+
+                <br></br>
+                <DropdownStreamers updateStateParent={this.changeFetch} />
+                <br></br>
                 <br></br>
                 <DropdownComp
-                  updateStateParent={this.updateNumOfStrFollowers}
-                  placeHolder="Number of streamers"
+                  options={options}
+                  updateStateParent={this.changeFetch}
+                  placeHolder="Sort by"
                 />
+                <br></br>
                 <br></br>
                 <Button
                   inverted

@@ -61,6 +61,12 @@ class Teams extends Component {
   };
 
   render() {
+    const options = [
+      { key: 5, text: "5", value: 5 },
+      { key: 10, text: "10", value: 10 },
+      { key: 15, text: "15", value: 15 },
+      { key: 20, text: "20", value: 20 },
+    ];
     const { error, isLoaded, header } = this.state;
     const paragraph =
       "Find out which teams are the most popular. Choose a number of top teams you would like to see:";
@@ -89,6 +95,7 @@ class Teams extends Component {
                 <p style={{ fontSize: "1.33em" }}>{paragraph}</p>
                 <br></br>
                 <DropdownComp
+                  options={options}
                   updateStateParent={this.updateNumOfTeams}
                   placeHolder="Number of teams"
                 />

@@ -1,13 +1,6 @@
 import React, { Component } from "react";
 import { Dropdown, Grid } from "semantic-ui-react";
 
-const options = [
-  { key: 5, text: "5", value: 5 },
-  { key: 10, text: "10", value: 10 },
-  { key: 15, text: "15", value: 15 },
-  { key: 20, text: "20", value: 20 },
-];
-
 export default class DropdownComp extends Component {
   state = {};
 
@@ -32,7 +25,7 @@ export default class DropdownComp extends Component {
         <Grid.Column>
           <Dropdown
             onChange={this.twoCalls}
-            options={options}
+            options={this.props.options}
             placeholder={this.props.placeHolder}
             selection
             value={value}

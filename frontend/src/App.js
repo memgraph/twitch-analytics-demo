@@ -14,8 +14,7 @@ import FindStreamer2 from "./components/FindStreamer2";
 import PageRank from "./components/PageRank";
 import BC from "./components/BC";
 import scrollToComponent from "react-scroll-to-component";
-import { Divider, Tab } from "semantic-ui-react";
-import GeneralStats from "./components/GeneralStats";
+import { Tab } from "semantic-ui-react";
 
 class App extends Component {
   constructor(props) {
@@ -56,6 +55,9 @@ class App extends Component {
           duration: 500,
           ease: "inCirc",
         });
+        break;
+      default:
+      // do nothing
     }
   };
 

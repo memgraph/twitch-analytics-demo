@@ -8,9 +8,7 @@ import {
   Button,
   Icon,
 } from "semantic-ui-react";
-import DropdownComp from "./DropdownComp";
 import DropdownStreamers from "./DropdownStreamers";
-import RadioPick from "./RadioPick";
 import TableComp from "./TableComp";
 
 class Streamers extends Component {

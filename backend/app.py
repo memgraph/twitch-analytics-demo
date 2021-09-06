@@ -68,11 +68,11 @@ def log_time(func):
 
 @log_time
 def load_twitch_data():
-        path_streams = Path("/usr/lib/memgraph/import-data/streamers_2.csv")
-        path_teams = Path("/usr/lib/memgraph/import-data/teams_2.csv")
-        path_vips = Path("/usr/lib/memgraph/import-data/vips_2.csv")
-        path_moderators = Path("/usr/lib/memgraph/import-data/moderators_2.csv")
-        path_chatters = Path("/usr/lib/memgraph/import-data/new_chatters.csv")
+        path_streams = Path("/usr/lib/memgraph/import-data/streamers.csv")
+        path_teams = Path("/usr/lib/memgraph/import-data/teams.csv")
+        path_vips = Path("/usr/lib/memgraph/import-data/vips.csv")
+        path_moderators = Path("/usr/lib/memgraph/import-data/moderators.csv")
+        path_chatters = Path("/usr/lib/memgraph/import-data/chatters.csv")
 
         memgraph.execute(
             f"""LOAD CSV FROM "{path_streams}"

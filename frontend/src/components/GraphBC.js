@@ -7,11 +7,24 @@ function GraphPR(props) {
     (svg) => {
       svg.selectAll("*").remove();
       const height = 500;
-      const width = 500;
+      const width = 750;
+
       const simulation = d3
         .forceSimulation(props.nodes)
+        .force(
+          "x",
+          d3.forceX().x((d) => d.x)
+        )
+        .force(
+          "y",
+          d3.forceY().y((d) => d.y)
+        )
         .force("charge", d3.forceManyBody())
-        .force("center", d3.forceCenter(width / 2, height / 2));
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force(
+          "collide",
+          d3.forceCollide().radius((d) => d.betweenness_centrality * 7000000)
+        );
 
       const node = svg
         .append("g")
@@ -57,7 +70,7 @@ function GraphPR(props) {
 
   const drag = (simulation) => {
     function dragstarted(event) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
+      if (!event.active) simulation.alphaTarget(0.5).restart();
       event.subject.fx = event.subject.x;
       event.subject.fy = event.subject.y;
     }

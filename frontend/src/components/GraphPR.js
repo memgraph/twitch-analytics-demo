@@ -7,11 +7,23 @@ function GraphPR(props) {
     (svg) => {
       svg.selectAll("*").remove();
       const height = 500;
-      const width = 1000;
+      const width = 750;
       const simulation = d3
         .forceSimulation(props.nodes)
+        .force(
+          "x",
+          d3.forceX().x((d) => d.x)
+        )
+        .force(
+          "y",
+          d3.forceY().y((d) => d.y)
+        )
         .force("charge", d3.forceManyBody())
-        .force("center", d3.forceCenter(width / 2, height / 2));
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force(
+          "collide",
+          d3.forceCollide().radius((d) => d.rank * 3000)
+        );
 
       const node = svg
         .append("g")

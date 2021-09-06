@@ -32,11 +32,10 @@ services:
     networks:
       - app-tier
   memgraph-mage:
-    image: memgraph/memgraph-mage
+    build: ./memgraph
     user: root
     volumes:
       - ./memgraph/import-data:/usr/lib/memgraph/import-data
-      - ./memgraph/query_modules:/usr/lib/memgraph/query_modules
       - ./memgraph/mg_lib:/var/lib/memgraph
       - ./memgraph/mg_log:/var/log/memgraph
       - ./memgraph/mg_etc:/etc/memgraph
@@ -86,14 +85,13 @@ services:
     build: ./twitch-stream
     volumes:
       - ./twitch-stream:/app
-    entrypoint:
-      ["python3", "dummy.py", "--file=chatters.csv", "--interval=2"]
+    entrypoint: ["python3", "dummy.py", "--file=chatters.csv", "--interval=1"]
     environment:
       KAFKA_IP: kafka
       KAFKA_PORT: "9092"
       MEMGRAPH_IP: memgraph-mage
       MEMGRAPH_PORT: "7687"
     depends_on:
-      - memgraph-mage
+      - core
     networks:
       - app-tier

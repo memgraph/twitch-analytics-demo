@@ -16,7 +16,7 @@ class FindStreamer extends Component {
   }
 
   fetchData(name) {
-    fetch("/get-streamer/" + name)
+    fetch("/streamer/" + name)
       .then((res) => res.json())
       .then(
         (result) => {

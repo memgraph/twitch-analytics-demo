@@ -16,7 +16,7 @@ class BC extends Component {
 
   componentDidMount() {
     this._isMounted = true;
-    fetch("/get-bc")
+    fetch("/betweenness-centrality")
       .then((res) => res.json())
       .then(
         (result) => {

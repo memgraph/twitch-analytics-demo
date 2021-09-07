@@ -66,21 +66,19 @@ function AutoCompleteGame(props) {
   };
 
   async function fetchLanguages() {
-    const res = await fetch("/get-all-languages-names");
+    const res = await fetch("/languages");
     res
       .json()
       .then((res) => setLanguages(res.languages))
       .catch((err) => setErrors(err));
-    console.log("Fetched languages");
   }
 
   async function fetchGames() {
-    const res = await fetch("/get-all-games-names");
+    const res = await fetch("/games");
     res
       .json()
       .then((res) => setGames(res.games))
       .catch((err) => setErrors(err));
-    console.log("Fetched games");
   }
 
   React.useEffect(() => {

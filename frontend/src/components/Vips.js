@@ -25,7 +25,7 @@ class Vips extends Component {
   }
 
   fetchData(number) {
-    fetch("/get-top-vips/" + number)
+    fetch("/top-vips/" + number)
       .then((res) => res.json())
       .then(
         (result) => {

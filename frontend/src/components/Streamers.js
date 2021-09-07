@@ -31,7 +31,7 @@ class Streamers extends Component {
   }
 
   fetchDataViews(number) {
-    fetch("/get-top-streamers-by-views/" + number)
+    fetch("/top-streamers-by-views/" + number)
       .then((res) => res.json())
       .then(
         (result) => {
@@ -56,7 +56,7 @@ class Streamers extends Component {
   }
 
   fetchDataFollowers(number) {
-    fetch("/get-top-streamers-by-followers/" + number)
+    fetch("/top-streamers-by-followers/" + number)
       .then((res) => res.json())
       .then(
         (result) => {
@@ -102,13 +102,10 @@ class Streamers extends Component {
   };
 
   changeFetch = (pick) => {
-    console.log(pick.value);
     if (pick.value === "Views") {
-      console.log("you've picked by views");
       this.setState({ byViews: true });
       this.fetchDataViews("10");
     } else {
-      console.log("you've picked by followers");
       this.setState({ byViews: false });
       this.fetchDataFollowers("10");
     }

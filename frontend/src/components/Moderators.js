@@ -25,7 +25,7 @@ class Moderators extends Component {
   }
 
   fetchData(number) {
-    fetch("/get-top-moderators/" + number)
+    fetch("/top-moderators/" + number)
       .then((res) => res.json())
       .then(
         (result) => {

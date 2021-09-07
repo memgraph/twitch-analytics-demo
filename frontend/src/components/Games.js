@@ -26,7 +26,7 @@ class Games extends Component {
   }
 
   fetchData(number) {
-    fetch("/get-top-games/" + number)
+    fetch("/top-games/" + number)
       .then((res) => res.json())
       .then(
         (result) => {

@@ -36,7 +36,7 @@ function AutoSearch(props) {
   };
 
   async function fetchNames() {
-    const res = await fetch("/get-all-streamers-names");
+    const res = await fetch("/streamers");
     res
       .json()
       .then((res) => setStreamers(res.streamers))

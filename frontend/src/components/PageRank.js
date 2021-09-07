@@ -16,7 +16,7 @@ class PageRank extends Component {
 
   componentDidMount() {
     this._isMounted = true;
-    fetch("/get-page-rank")
+    fetch("/page-rank")
       .then((res) => res.json())
       .then(
         (result) => {

@@ -127,7 +127,7 @@ def load_twitch_data():
             CREATE (c)-[:CHATTER]->(s);"""
         )
 
-@app.route("/get-page-rank", methods=["GET"])
+@app.route("/page-rank", methods=["GET"])
 @log_time
 def get_page_rank():
     """Call the Page rank procedure and return the results."""
@@ -160,37 +160,7 @@ def get_page_rank():
         log.info(e)
         return ("", 500)
 
-@app.route("/get-wcc", methods=["GET"])
-@log_time
-def get_wcc():
-    """Call the Weakly connected componenents procedure and return the results."""
-    try:
-        results = memgraph.execute_and_fetch(
-            """CALL weakly_connected_components.get()
-            YIELD node, component_id;"""
-        )
-        components_set = set()
-        wcc_list = list()
-        wcc_dict = dict()
-        for result in results: # tried only with Streams, still only one component
-            if "Stream" in list(result["node"].labels):
-                user_name = result["node"].properties["name"]
-                component = int(result["component_id"])
-                components_set.add(component)
-                wcc_dict = {"name" : user_name, "component" : component}
-                dict_copy = wcc_dict.copy()
-                wcc_list.append(dict_copy)
-        log.info("Num of components")
-        log.info(len(components_set))
-        response = {"components": wcc_list}
-        return Response(dumps(response), status=200, mimetype="application/json")
-    except Exception as e:
-        log.info("Fetching weakly connected components went wrong.")
-        log.info(e)
-        return ("", 500)
-
-
-@app.route("/get-bc", methods=["GET"])
+@app.route("/betweenness-centrality", methods=["GET"])
 @log_time
 def get_bc():
     """Call the Betweenness centrality procedure and return the results."""
@@ -223,72 +193,8 @@ def get_bc():
         log.info(e)
         return ("", 500)
 
-@log_time
-def load_data():
-    """Load data into the database."""
 
-    if not args.populate:
-        log.info("Data is loaded in Memgraph.")
-        return
-    log.info("Loading data into Memgraph.")
-    try:
-        memgraph.drop_database()
-        load_twitch_data()
-    except Exception as e:
-        log.info("Data loading error.")
-
-
-
-# is this used anywhere?
-@app.route("/get-graph", methods=["GET"])
-@log_time
-def get_data():
-    try:
-        results = (
-            Match()
-            .node("User", variable="from")
-            .to("IS_PART_OF")
-            .node("Team", variable="to")
-            .execute()
-        )
-
-        nodes_set = set()
-        links_set = set()
-
-        for result in results:
-            source_id = result["from"].properties['id']
-            target_id = result["to"].properties['name']
-            source_label = list(result["from"].labels)[0]
-            target_label = list(result["to"].labels)[0]
-            source_name = result["from"].properties['name']
-            target_name = target_id
-
-            nodes_set.add((source_id, source_label, source_name))
-            nodes_set.add((target_id, target_label, target_name))
-
-            if (source_id, target_id) not in links_set and (
-                target_id,
-                source_id,
-            ) not in links_set:
-                links_set.add((source_id, target_id))
-
-        nodes = [
-            {"id": node_id, "label": node_label, "name": node_name}
-            for node_id, node_label, node_name in nodes_set
-        ]
-        links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
-
-        response = {"nodes": nodes, "links": links}
-
-        return Response(dumps(response), status=200, mimetype="application/json")
-
-    except Exception as e:
-        log.info("Data fetching went wrong.")
-        log.info(e)
-        return ("", 500)
-
-
-@app.route("/get-top-streamers-by-views/<num_of_streamers>", methods=["GET"])
+@app.route("/top-streamers-by-views/<num_of_streamers>", methods=["GET"])
 @log_time
 def get_top_streamers_by_views(num_of_streamers):
     """Get top num_of_streamers streamers by total number of views."""
@@ -327,7 +233,7 @@ def get_top_streamers_by_views(num_of_streamers):
         return ("", 500)
 
 
-@app.route("/get-top-streamers-by-followers/<num_of_streamers>", methods=["GET"])
+@app.route("/top-streamers-by-followers/<num_of_streamers>", methods=["GET"])
 @log_time
 def get_top_streamers_by_followers(num_of_streamers):
     """Get top num_of_streamers streamers by total number of followers."""
@@ -367,7 +273,7 @@ def get_top_streamers_by_followers(num_of_streamers):
         return ("", 500)
 
 
-@app.route("/get-top-games/<num_of_games>", methods=["GET"])
+@app.route("/top-games/<num_of_games>", methods=["GET"])
 @log_time
 def get_top_games(num_of_games):
     """Get top _num_ games by number of streamers who play them."""
@@ -407,7 +313,7 @@ def get_top_games(num_of_games):
         return ("", 500)
 
 
-@app.route("/get-top-teams/<num_of_teams>", methods=["GET"])
+@app.route("/top-teams/<num_of_teams>", methods=["GET"])
 @log_time
 def get_top_teams(num_of_teams):
     """Get top num_of_teams teams by number of streamers who are part of them."""
@@ -447,7 +353,7 @@ def get_top_teams(num_of_teams):
         return ("", 500)
 
 
-@app.route("/get-top-vips/<num_of_vips>", methods=["GET"])
+@app.route("/top-vips/<num_of_vips>", methods=["GET"])
 @log_time
 def get_top_vips(num_of_vips):
     """Get top num_of_vips vips by number of streamers who gave them the vip badge."""
@@ -486,7 +392,7 @@ def get_top_vips(num_of_vips):
         return ("", 500)
 
 
-@app.route("/get-top-moderators/<num_of_moderators>", methods=["GET"])
+@app.route("/top-moderators/<num_of_moderators>", methods=["GET"])
 @log_time
 def get_top_moderators(num_of_moderators):
     """Get top _num_of_moderators moderators by number of streamers who gave them the moderator badge."""
@@ -525,7 +431,7 @@ def get_top_moderators(num_of_moderators):
         return ("", 500)
 
 
-@app.route("/get-streamer/<streamer_name>", methods=["GET"])
+@app.route("/streamer/<streamer_name>", methods=["GET"])
 @log_time
 def get_streamer(streamer_name):
     """Get info about streamer whose name is streamer_name."""
@@ -554,7 +460,7 @@ def get_streamer(streamer_name):
             for result in results:
                 source_id = result['u'].properties['id']
                 source_name = result['u'].properties['name']
-                source_label = 'Stream' #list(result['u'].labels)[0] can be User or Stream
+                source_label = 'Stream'
 
                 target_id = result['n'].properties['name']
                 target_name = result['n'].properties['name']
@@ -590,42 +496,7 @@ def get_streamer(streamer_name):
         return ("", 500)
 
 
-@app.route("/get-languages", methods=["GET"])
-@log_time
-def get_languages():
-    """Get all language nodes."""
-    try:
-        results = memgraph.execute_and_fetch(
-            """MATCH(u:Stream)-[]->(l:Language)
-                RETURN l AS language, COUNT(u) AS user_count;"""
-        )
-
-        nodes_set = set()
-
-        for result in results:
-            source_name = result['language'].properties['name']
-            source_label = 'Language'
-            user_count = result['user_count']
-
-            nodes_set.add((source_label, source_name, user_count))
-
-        nodes = [
-            {"label": node_label, "name": node_name, "num_of_users": node_count}
-            for node_label, node_name, node_count in nodes_set
-        ]
-        links = []
-
-
-        response = {"nodes": nodes, "links": links}
-        return Response(dumps(response), status=200, mimetype="application/json")
-
-    except Exception as e:
-        log.info("Fetching languages went wrong.")
-        log.info(e)
-        return ("", 500)
-
-
-@app.route("/get-streamers/<language>/<game>", methods=["GET"])
+@app.route("/streamers/<language>/<game>", methods=["GET"])
 @log_time
 def get_streamers(language, game):
     """Get all streamers who stream certain game in certain language."""
@@ -682,7 +553,7 @@ def get_streamers(language, game):
         log.info(e)
         return ("", 500)
 
-@app.route("/get-all-streamers-names", methods=["GET"])
+@app.route("/streamers", methods=["GET"])
 @log_time
 def get_all_streamers_names():
     """Get the names of all streamers."""
@@ -709,10 +580,10 @@ def get_all_streamers_names():
         return ("", 500)
  
 
-@app.route("/get-all-games-names", methods=["GET"])
+@app.route("/games", methods=["GET"])
 @log_time
 def get_all_games_names():
-    """Get the names of all streamers."""
+    """Get the names of all games."""
     try:
         results = memgraph.execute_and_fetch(
             """MATCH(n:Game)
@@ -734,7 +605,7 @@ def get_all_games_names():
         log.info(e)
         return ("", 500)
 
-@app.route("/get-all-languages-names", methods=["GET"])
+@app.route("/languages", methods=["GET"])
 @log_time
 def get_all_languages_names():
     """Get the names of all languages."""
@@ -755,9 +626,24 @@ def get_all_languages_names():
         return Response(dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
-        log.info("Fetching top teams went wrong.")
+        log.info("Fetching all languages went wrong.")
         log.info(e)
         return ("", 500)
+
+@log_time
+def load_data():
+    """Load data into the database."""
+
+    if not args.populate:
+        log.info("Data is loaded in Memgraph.")
+        return
+    log.info("Loading data into Memgraph.")
+    try:
+        memgraph.drop_database()
+        load_twitch_data()
+    except Exception as e:
+        log.info("Data loading error.")
+
 
 @app.route("/", methods=["GET"])
 def index():

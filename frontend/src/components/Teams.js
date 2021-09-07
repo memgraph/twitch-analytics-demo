@@ -25,7 +25,7 @@ class Teams extends Component {
   }
 
   fetchData(number) {
-    fetch("/get-top-teams/" + number)
+    fetch("/top-teams/" + number)
       .then((res) => res.json())
       .then(
         (result) => {

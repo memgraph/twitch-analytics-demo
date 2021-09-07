@@ -630,6 +630,50 @@ def get_all_languages_names():
         log.info(e)
         return ("", 500)
 
+@app.route("/nodes", methods=["GET"])
+@log_time
+def get_nodes():
+    """Get the number of nodes in database."""
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH ()
+            RETURN count(*) AS nodes;"""
+        )
+
+        for result in results:
+            num_of_nodes = result['nodes']
+
+        response = {"nodes": num_of_nodes}
+        return Response(dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching number of nodes went wrong.")
+        log.info(e)
+        return ("", 500)
+
+
+@app.route("/edges", methods=["GET"])
+@log_time
+def get_edges():
+    """Get the number of edges in database."""
+    try:
+        results = memgraph.execute_and_fetch(
+            """MATCH (:Stream)-[]-()
+            RETURN count(*) AS edges;"""
+        )
+
+        for result in results:
+            num_of_edges = result['edges']
+
+        response = {"edges": num_of_edges}
+        return Response(dumps(response), status=200, mimetype="application/json")
+
+    except Exception as e:
+        log.info("Fetching number of nodes went wrong.")
+        log.info(e)
+        return ("", 500)
+
+
 @log_time
 def load_data():
     """Load data into the database."""

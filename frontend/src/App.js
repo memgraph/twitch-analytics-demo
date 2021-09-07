@@ -127,7 +127,6 @@ class App extends Component {
         <GraphHeader ref={this.graphHeader} />
         <FindStreamer />
         <FindStreamer2 />
-
         <PageRank />
         <BC />
       </div>

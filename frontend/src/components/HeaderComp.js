@@ -6,7 +6,9 @@ import {
   Segment,
   Visibility,
   Header,
+  MenuItem,
 } from "semantic-ui-react";
+import Counter from "./Counter";
 
 function TwitchHeading(props) {
   return (
@@ -87,6 +89,12 @@ class HeaderComp extends Component {
                 Graph visualization
               </Button>
             </Menu.Item>
+            <MenuItem as="a">
+              <Counter count="nodes" />
+            </MenuItem>
+            <MenuItem as="a">
+              <Counter count="edges" />
+            </MenuItem>
           </Menu>
           <TwitchHeading handleClickGraph={this.handleClickFromHeader} />
         </Segment>

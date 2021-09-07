@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { Button } from "semantic-ui-react";
+import { Button, Loader } from "semantic-ui-react";
 
 class Counter extends Component {
   constructor(props) {
@@ -38,12 +38,32 @@ class Counter extends Component {
   }
 
   render() {
-    const { counter } = this.state;
-    return (
-      <Button inverted color="orange">
-        {counter}
-      </Button>
-    );
+    const { error, isLoaded, counter } = this.state;
+    if (error) {
+      return <div>Error: {error.message}</div>;
+    } else if (!isLoaded) {
+      return (
+        <Button loading secondary>
+          Loading
+        </Button>
+      );
+    } else {
+      if (this.props.count === "nodes") {
+        return (
+          <Button animated="vertical" inverted color="orange">
+            <Button.Content visible> {counter} </Button.Content>
+            <Button.Content hidden> Nodes </Button.Content>
+          </Button>
+        );
+      } else {
+        return (
+          <Button animated="vertical" inverted color="orange">
+            <Button.Content visible> {counter} </Button.Content>
+            <Button.Content hidden> Edges </Button.Content>
+          </Button>
+        );
+      }
+    }
   }
 }
 

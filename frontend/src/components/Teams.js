@@ -5,10 +5,7 @@ import {
   Header,
   Dimmer,
   Loader,
-  Button,
-  Icon,
 } from "semantic-ui-react";
-import DropdownComp from "./DropdownComp";
 import TableComp from "./TableComp";
 
 class Teams extends Component {
@@ -52,24 +49,10 @@ class Teams extends Component {
     this.fetchData(this.state.numOfTeams);
   }
 
-  updateNumOfTeams = (num) => {
-    this.fetchData(num.value);
-  };
-
-  handleRefresh = () => {
-    this.fetchData("10");
-  };
-
   render() {
-    const options = [
-      { key: 5, text: "5", value: 5 },
-      { key: 10, text: "10", value: 10 },
-      { key: 15, text: "15", value: 15 },
-      { key: 20, text: "20", value: 20 },
-    ];
     const { error, isLoaded, header } = this.state;
     const paragraph =
-      "Find out which teams are the most popular. Choose a number of top teams you would like to see:";
+      "Find out which teams are the most popular.";
     const headers = ["Team", "Number of members"];
     if (error) {
       return <div>Error: {error.message}</div>;
@@ -93,23 +76,6 @@ class Teams extends Component {
                   {header}
                 </Header>
                 <p style={{ fontSize: "1.33em" }}>{paragraph}</p>
-                <br></br>
-                <DropdownComp
-                  options={options}
-                  updateStateParent={this.updateNumOfTeams}
-                  placeHolder="Number of teams"
-                />
-                <br></br>
-                <Button
-                  inverted
-                  color="orange"
-                  icon
-                  labelPosition="left"
-                  onClick={this.handleRefresh}
-                >
-                  <Icon name="refresh" />
-                  Refresh
-                </Button>
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp

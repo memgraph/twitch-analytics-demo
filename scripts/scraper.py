@@ -14,7 +14,7 @@ def get_streams(client):
     streams = client.get_streams()
     print(len(streams))
 
-    streams_file = open('streams_2.csv', 'w', encoding="utf-8", newline='')
+    streams_file = open('streams.csv', 'w', encoding="utf-8", newline='')
     csv_writer = csv.writer(streams_file)
     count = 0
 
@@ -37,7 +37,7 @@ def get_streams(client):
 
 def get_users(client):
     col_list = ["user_id"]
-    df = pd.read_csv("streams_2.csv", usecols = col_list)
+    df = pd.read_csv("streams.csv", usecols = col_list)
     user_ids = df.values.tolist()
     print(user_ids)
 
@@ -45,7 +45,7 @@ def get_users(client):
     new_dict_keys = ("id", "description","view_count", "created_at")
     users = client.get_users(ids=user_ids)
 
-    users_file = open('users_2.csv', 'w', encoding="utf-8", newline='')
+    users_file = open('users.csv', 'w', encoding="utf-8", newline='')
     csv_writer = csv.writer(users_file)
     count = 0
     for user in users:
@@ -64,7 +64,7 @@ def get_users(client):
 
 def get_teams():
     col_list = ["user_id"]
-    df = pd.read_csv("streams_2.csv", usecols = col_list)
+    df = pd.read_csv("streams.csv", usecols = col_list)
     user_ids = df.values.tolist()
     all_teams = {}
 
@@ -90,7 +90,7 @@ def get_teams():
 
     # we have dictionary with user_id's as keys and list of the teams they belong to as values
     count = 0
-    with open('teams_2.csv', 'w', encoding="utf-8", newline='') as f:
+    with open('teams.csv', 'w', encoding="utf-8", newline='') as f:
         for user_id in user_ids:
             if count == 0:
                 f.write("user_id,team_name\n")
@@ -100,7 +100,7 @@ def get_teams():
 
 def get_followers():
     col_list = ["user_id"]
-    df = pd.read_csv("streams_2.csv", usecols = col_list)
+    df = pd.read_csv("streams.csv", usecols = col_list)
     user_ids = df.values.tolist()
     followers = dict()
     for user_id in user_ids:
@@ -116,7 +116,7 @@ def get_followers():
                 followers[str(user_id[0])] = num_of_follows
 
     count = 0
-    with open('followers_2.csv', 'w', encoding="utf-8", newline='') as f:
+    with open('followers.csv', 'w', encoding="utf-8", newline='') as f:
         for key in followers.keys():
             if count == 0:
                 f.write("user_id,followers\n")
@@ -125,11 +125,11 @@ def get_followers():
 
 def get_chatters():
     col_list = ["user_id", "user_login"]
-    df = pd.read_csv("streams_2.csv", usecols = col_list)
+    df = pd.read_csv("streams.csv", usecols = col_list)
     user_logins = df.values.tolist()
-    with open('moderators_2.csv', 'w', encoding="utf-8", newline='') as m:
-        with open('vips_2.csv', 'w', encoding="utf-8", newline='') as v:
-            with open('chatters_2.csv', 'w', encoding="utf-8", newline='') as c:
+    with open('moderators.csv', 'w', encoding="utf-8", newline='') as m:
+        with open('vips.csv', 'w', encoding="utf-8", newline='') as v:
+            with open('full_chatters.csv', 'w', encoding="utf-8", newline='') as c:
                 m.write("user_id,moderator_login\n")
                 v.write("user_id,vip_login\n")
                 c.write("user_id,chatter_login\n")
@@ -151,17 +151,17 @@ def get_chatters():
                         c.write("%s,%s\n"%(user_login[0], chatter)) 
 
 def make_streamers_csv():
-    csv_input_1 = pd.read_csv('streams_2.csv')
-    csv_input_2 = pd.read_csv('followers_2.csv')
-    csv_input_3 = pd.read_csv('users_2.csv')
+    csv_input_1 = pd.read_csv('streams.csv')
+    csv_input_2 = pd.read_csv('followers.csv')
+    csv_input_3 = pd.read_csv('users.csv')
     csv_input_1['followers'] = csv_input_2['followers']
     csv_input_1['description'] = csv_input_3['description']
     csv_input_1['view_count'] = csv_input_3['view_count']
     csv_input_1['created_at'] = csv_input_3['created_at']
-    csv_input_1.to_csv('streamers_2.csv', index=False)
+    csv_input_1.to_csv('streamers.csv', index=False)
 
 def count_by_id():
-    with open("chatters_2.csv", encoding="utf-8", newline='') as csvfile:
+    with open("full_chatters.csv", encoding="utf-8", newline='') as csvfile:
         counter = collections.Counter(row["user_id"] for row in csv.DictReader(csvfile))
 
     with open("num_of_chatters.csv", "w", encoding="utf-8", newline='') as outfile:
@@ -172,8 +172,8 @@ def count_by_id():
 
 def copy_rows():
     
-    file_in = 'chatters_2.csv'
-    file_out = 'new_chatters.csv'
+    file_in = 'full_chatters.csv'
+    file_out = 'chatters.csv'
 
     col_list = ["num_of_chatters"]
     df = pd.read_csv("num_of_chatters.csv", usecols = col_list)
@@ -204,19 +204,19 @@ def copy_rows():
 
 
 def main():
-    # client = twitch.TwitchHelix(client_id='ll6iwaioden39cwoo0u3x4y3m89e3x', oauth_token='b6yf8utpreemxtjc3cu0gc318nsk5d')
-    # p = multiprocessing.Process(target=get_streams, name="Get_streams", args=(client,))
-    # p.start()
-    # time.sleep(3) # num of streamers must be max 100 foreach user request
-    # if p.is_alive():
-    #     p.terminate()
-    #     p.join()
-    # get_users(client)
-    # get_teams()
-    # get_followers()
-    # get_chatters()
-    # make_streamers_csv()
-    # count_by_id()
+    client = twitch.TwitchHelix(client_id='ll6iwaioden39cwoo0u3x4y3m89e3x', oauth_token='b6yf8utpreemxtjc3cu0gc318nsk5d')
+    p = multiprocessing.Process(target=get_streams, name="Get_streams", args=(client,))
+    p.start()
+    time.sleep(3) 
+    if p.is_alive():
+        p.terminate()
+        p.join()
+    get_users(client)
+    get_teams()
+    get_followers()
+    get_chatters()
+    make_streamers_csv()
+    count_by_id()
     copy_rows()
 
 if __name__ == "__main__":

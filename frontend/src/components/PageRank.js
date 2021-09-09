@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { Grid, Segment, Header, Dimmer, Loader } from "semantic-ui-react";
+import { Grid, Segment, Header, Dimmer, Loader, Button, Icon } from "semantic-ui-react";
 import GraphPR from "./GraphPR";
 import TableComp from "./TableComp";
 
@@ -12,10 +12,11 @@ class PageRank extends Component {
       isLoaded: false,
       nodes: [],
     };
+    this.handleRefresh = this.handleRefresh.bind(this);
   }
 
-  componentDidMount() {
-    this._isMounted = true;
+
+  fetchData(){
     fetch("/page-rank")
       .then((res) => res.json())
       .then(
@@ -32,6 +33,15 @@ class PageRank extends Component {
           });
         }
       );
+  }
+
+  handleRefresh = () => {
+    this.fetchData();
+  };
+
+  componentDidMount() {
+    this._isMounted = true;
+    this.fetchData();
   }
 
   componentWillUnmount() {
@@ -66,8 +76,20 @@ class PageRank extends Component {
                 {header}
               </Header>
               <p align="center" style={{ fontSize: "1.33em" }}>
-                {paragraph}
+                {paragraph} 
               </p>
+              <p align="center">                
+                <Button
+                    inverted
+                    color="orange"
+                    icon
+                    labelPosition="left"
+                    onClick={this.handleRefresh}
+                  >
+                    <Icon name="refresh" />
+                    Refresh
+                </Button>
+              </p>          
             </Grid.Column>
           </Grid>
           <Grid centered columns={2}>

@@ -85,21 +85,6 @@ class Streamers extends Component {
     this.fetchDataFollowers(this.state.numOfStrFollowers);
   }
 
-  updateNumOfStrViews = (num) => {
-    this.fetchDataViews(num.value);
-  };
-
-  updateNumOfStrFollowers = (num) => {
-    this.fetchDataFollowers(num.value);
-  };
-
-  handleRefreshFollowers = () => {
-    this.fetchDataFollowers("10");
-  };
-
-  handleRefreshViews = () => {
-    this.fetchDataViews("10");
-  };
 
   changeFetch = (pick) => {
     if (pick.value === "Views") {
@@ -151,14 +136,6 @@ class Streamers extends Component {
                 <br></br>
                 <Grid.Row>
                   <DropdownStreamers updateStateParent={this.changeFetch} />
-                  <Button
-                    inverted
-                    color="orange"
-                    icon
-                    onClick={this.handleRefreshViews}
-                  >
-                    <Icon name="refresh" />
-                  </Button>
                 </Grid.Row>
                 <br></br>
                 <br></br>
@@ -190,14 +167,6 @@ class Streamers extends Component {
                 <br></br>
                 <Grid.Row>
                   <DropdownStreamers updateStateParent={this.changeFetch} />
-                  <Button
-                    inverted
-                    color="orange"
-                    icon
-                    onClick={this.handleRefreshFollowers}
-                  >
-                    <Icon name="refresh" />
-                  </Button>
                 </Grid.Row>
                 <br></br>
                 <br></br>

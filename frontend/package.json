@@ -41,7 +41,7 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5000",
+  "proxy": "http://twitch-app:5000",
   "devDependencies": {
     "@craco/craco": "^6.2.0",
     "@semantic-ui-react/craco-less": "^1.2.3",

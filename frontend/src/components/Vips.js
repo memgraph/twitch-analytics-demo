@@ -5,10 +5,7 @@ import {
   Header,
   Dimmer,
   Loader,
-  Button,
-  Icon,
 } from "semantic-ui-react";
-import DropdownComp from "./DropdownComp";
 import TableComp from "./TableComp";
 
 class Vips extends Component {
@@ -51,24 +48,10 @@ class Vips extends Component {
     this.fetchData(this.state.numOfVips);
   }
 
-  updateNumOfVips = (num) => {
-    this.fetchData(num.value);
-  };
-
-  handleRefresh = () => {
-    this.fetchData("10");
-  };
-
   render() {
-    const options = [
-      { key: 5, text: "5", value: 5 },
-      { key: 10, text: "10", value: 10 },
-      { key: 15, text: "15", value: 15 },
-      { key: 20, text: "20", value: 20 },
-    ];
     const { error, isLoaded, header } = this.state;
     const paragraph =
-      "Find out which user has the most vip badges. Choose a number of top vips you would like to see:";
+      "Find out which user has the most vip badges.";
     const headers = ["Vip", "Number of badges"];
     if (error) {
       return <div>Error: {error.message}</div>;
@@ -92,23 +75,6 @@ class Vips extends Component {
                   {header}
                 </Header>
                 <p style={{ fontSize: "1.33em" }}>{paragraph}</p>
-                <br></br>
-                <DropdownComp
-                  options={options}
-                  updateStateParent={this.updateNumOfVips}
-                  placeHolder="Number of vips"
-                />
-                <br></br>
-                <Button
-                  inverted
-                  color="orange"
-                  icon
-                  labelPosition="left"
-                  onClick={this.handleRefresh}
-                >
-                  <Icon name="refresh" />
-                  Refresh
-                </Button>
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp

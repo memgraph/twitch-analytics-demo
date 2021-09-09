@@ -52,25 +52,11 @@ class Moderators extends Component {
     this.fetchData(this.state.numOfMods);
   }
 
-  updateNumOfMods = (num) => {
-    this.fetchData(num.value);
-  };
-
-  handleRefresh = () => {
-    this.fetchData("10");
-  };
-
   render() {
-    const options = [
-      { key: 5, text: "5", value: 5 },
-      { key: 10, text: "10", value: 10 },
-      { key: 15, text: "15", value: 15 },
-      { key: 20, text: "20", value: 20 },
-    ];
     const { error, isLoaded, header } = this.state;
     const headers = ["Moderator", "Number of channels"];
     const paragraph =
-      "Find out which user is the most popular channel moderator. Choose a number of top moderators you would like to see:";
+      "Find out which user is the most popular channel moderator.";
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
@@ -93,23 +79,6 @@ class Moderators extends Component {
                   {header}
                 </Header>
                 <p style={{ fontSize: "1.33em" }}>{paragraph}</p>
-                <br></br>
-                <DropdownComp
-                  options={options}
-                  updateStateParent={this.updateNumOfMods}
-                  placeHolder="Number of moderators"
-                />
-                <br></br>
-                <Button
-                  inverted
-                  color="orange"
-                  icon
-                  labelPosition="left"
-                  onClick={this.handleRefresh}
-                >
-                  <Icon name="refresh" />
-                  Refresh
-                </Button>
               </Grid.Column>
               <Grid.Column floated="right" width={4}>
                 <TableComp

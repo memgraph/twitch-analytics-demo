@@ -81,7 +81,7 @@ function AutoSearch(props) {
 
   return (
     <Grid>
-      <Grid.Column width={6}>
+      <Grid.Column width={7}>
         <Search
           loading={loading}
           onResultSelect={(e, data) =>

@@ -5,8 +5,6 @@ import {
   Header,
   Dimmer,
   Loader,
-  Button,
-  Icon,
 } from "semantic-ui-react";
 import DropdownStreamers from "./DropdownStreamers";
 import TableComp from "./TableComp";

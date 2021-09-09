@@ -5,10 +5,7 @@ import {
   Header,
   Dimmer,
   Loader,
-  Button,
-  Icon,
 } from "semantic-ui-react";
-import DropdownComp from "./DropdownComp";
 import TableComp from "./TableComp";
 
 class Moderators extends Component {

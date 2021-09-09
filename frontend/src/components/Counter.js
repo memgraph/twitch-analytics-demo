@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { Button, Loader } from "semantic-ui-react";
+import { Button } from "semantic-ui-react";
 
 class Counter extends Component {
   constructor(props) {

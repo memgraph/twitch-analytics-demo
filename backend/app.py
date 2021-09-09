@@ -135,23 +135,25 @@ def get_page_rank():
     try:
         results = memgraph.execute_and_fetch(
             """CALL pagerank.get()
-            YIELD node, rank; """ #sort in memgraph (order by)
+            YIELD node, rank
+            WITH node, rank
+            WHERE node:Stream OR node:User
+            RETURN node, rank
+            ORDER BY rank DESC
+            LIMIT 50; """ #sort in memgraph (order by)
         )
 
         page_rank_dict = dict()
         page_rank_list = list()
 
         for result in results:
-            if(list(result["node"].labels)[0] == "User" or list(result["node"].labels)[0] == "Stream"):
-                user_name = result["node"].properties["name"]
-                rank = float(result["rank"])
-                page_rank_dict = {"name": user_name, "rank": rank}
-                dict_copy = page_rank_dict.copy()
-                page_rank_list.append(dict_copy)
+            user_name = result["node"].properties["name"]
+            rank = float(result["rank"])
+            page_rank_dict = {"name": user_name, "rank": rank}
+            dict_copy = page_rank_dict.copy()
+            page_rank_list.append(dict_copy)
 
-        sorted_list = sorted(page_rank_list, key = lambda i: i['rank'], reverse=True)
-        top_50_list = sorted_list[0:50]
-        response = {"page_rank" : top_50_list}
+        response = {"page_rank" : page_rank_list}
 
         return Response(dumps(response), status=200, mimetype="application/json")
 
@@ -168,23 +170,25 @@ def get_bc():
     try:
         results = memgraph.execute_and_fetch(
             """CALL betweenness_centrality.get()
-            YIELD node, betweeenness_centrality;""" #sort in memgraph (order by)
+            YIELD node, betweeenness_centrality
+            WITH node, betweeenness_centrality
+            WHERE node:Stream OR node:User
+            RETURN node, betweeenness_centrality
+            ORDER BY betweeenness_centrality DESC
+            LIMIT 50;"""
         )
 
         bc_dict = dict()
         bc_list = list()
 
         for result in results:
-            if(list(result["node"].labels)[0] == "User" or list(result["node"].labels)[0] == "Stream"):
-                user_name = result["node"].properties["name"]
-                bc = float(result["betweeenness_centrality"])
-                bc_dict = {"name": user_name, "betweenness_centrality": bc}
-                dict_copy = bc_dict.copy()
-                bc_list.append(dict_copy)
+            user_name = result["node"].properties["name"]
+            bc = float(result["betweeenness_centrality"])
+            bc_dict = {"name": user_name, "betweenness_centrality": bc}
+            dict_copy = bc_dict.copy()
+            bc_list.append(dict_copy)
 
-        sorted_list = sorted(bc_list, key = lambda i: i['betweenness_centrality'], reverse=True)
-        top_50_list = sorted_list[0:50]
-        response = {"bc" : top_50_list}
+        response = {"bc" : bc_list}
 
         return Response(dumps(response), status=200, mimetype="application/json")
 
@@ -658,8 +662,8 @@ def get_edges():
     """Get the number of edges in database."""
     try:
         results = memgraph.execute_and_fetch(
-            """MATCH (:Stream)-[]-()
-            RETURN count(*) AS edges;"""
+            """MATCH ()-[r]-()
+            RETURN count(r) AS edges;"""
         )
 
         for result in results:

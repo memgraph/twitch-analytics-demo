@@ -4,7 +4,7 @@ import time
 from argparse import ArgumentParser
 from flask import Flask, Response, render_template
 from functools import wraps
-from gqlalchemy import Match, Memgraph
+from gqlalchemy import Memgraph
 from json import dumps
 from pathlib import Path
 
@@ -130,7 +130,7 @@ def load_twitch_data():
 @app.route("/page-rank", methods=["GET"])
 @log_time
 def get_page_rank():
-    """Call the Page rank procedure and return the results."""
+    """Call the Page rank procedure and return top 50 in descending order."""
 
     try:
         results = memgraph.execute_and_fetch(
@@ -165,7 +165,7 @@ def get_page_rank():
 @app.route("/betweenness-centrality", methods=["GET"])
 @log_time
 def get_bc():
-    """Call the Betweenness centrality procedure and return the results."""
+    """Call the Betweenness centrality procedure and return top 50 in descending order."""
 
     try:
         results = memgraph.execute_and_fetch(
@@ -280,7 +280,7 @@ def get_top_streamers_by_followers(num_of_streamers):
 @app.route("/top-games/<num_of_games>", methods=["GET"])
 @log_time
 def get_top_games(num_of_games):
-    """Get top _num_ games by number of streamers who play them."""
+    """Get top num_of_games games by number of streamers who play them."""
 
     try:
         results = memgraph.execute_and_fetch(
@@ -399,7 +399,7 @@ def get_top_vips(num_of_vips):
 @app.route("/top-moderators/<num_of_moderators>", methods=["GET"])
 @log_time
 def get_top_moderators(num_of_moderators):
-    """Get top _num_of_moderators moderators by number of streamers who gave them the moderator badge."""
+    """Get top num_of_moderators moderators by number of streamers who gave them the moderator badge."""
 
     try:
         results = memgraph.execute_and_fetch(

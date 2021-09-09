@@ -1,6 +1,6 @@
 FROM python:3.8
 
-# Install CMake
+# Install CMake for gqlalchemy
 RUN apt-get update && \
   apt-get --yes install cmake && \
   rm -rf /var/lib/apt/lists/*
@@ -9,8 +9,8 @@ RUN apt-get update && \
 COPY requirements.txt ./
 RUN pip3 install -r requirements.txt
 
-ENV FLASK_ENV=development
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
+COPY dummy.py /app/dummy.py
+COPY setup.py /app/setup.py
+COPY chatters.csv /app/chatters.csv
 
-ENTRYPOINT ["python3", "app.py"]
+WORKDIR /app

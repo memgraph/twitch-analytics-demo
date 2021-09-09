@@ -662,7 +662,7 @@ def get_edges():
     """Get the number of edges in database."""
     try:
         results = memgraph.execute_and_fetch(
-            """MATCH ()-[r]-()
+            """MATCH ()-[r]->()
             RETURN count(r) AS edges;"""
         )
 

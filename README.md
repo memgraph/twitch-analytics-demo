@@ -1,6 +1,6 @@
 # Twitch Analytics Demo
 
-![](https://github.com/memgraph/twitch-analytics-demo/blob/main/images/app_1.png)
+![](/images/app_1.png)
 
 ## Dataset
 
@@ -21,3 +21,19 @@ To start streaming the data run:
 ```
 docker-compose up twitch-stream
 ```
+
+## General statistics
+
+Choose from top games, teams, vips, moderators or streamers.
+
+![](/images/app_2.png)
+
+## Graph visualization
+
+Find your favorite streamer or the streamers who stream your favorite game in your language.
+
+![](/images/app_3.png)
+
+### PageRank and Betweenness Centrality
+
+![](/images/app_4.png)

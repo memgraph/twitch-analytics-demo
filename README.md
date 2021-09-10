@@ -34,6 +34,6 @@ Find your favorite streamer or the streamers who stream your favorite game in yo
 
 ![](/images/app_3.png)
 
-### PageRank and Betweenness Centrality
+Check out the PageRank and Betweenness Centrality MAGE algorithms.
 
 ![](/images/app_4.png)

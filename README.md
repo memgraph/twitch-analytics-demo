@@ -1,5 +1,7 @@
 # Twitch Analytics Demo
 
+![](https://github.com/memgraph/twitch-analytics-demo/blob/main/images/app_1.png)
+
 ## Dataset
 
 The data was collected using [Twitch API](https://dev.twitch.tv/docs/api/). The files which we'll use are located in `/memgraph/import-data/` folder and are called: `streamers.csv`, `teams.csv`, `vips.csv`, `moderators.csv` and `chatters.csv`.

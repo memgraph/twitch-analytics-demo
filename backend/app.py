@@ -10,12 +10,15 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
+
 def init_log():
     logging.basicConfig(level=logging.DEBUG)
     log.info("Logging enabled")
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
+
 init_log()
+
 
 def parse_args():
     """Parse command line arguments."""
@@ -56,6 +59,7 @@ app = Flask(
     __name__,
 )
 
+
 def log_time(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -66,66 +70,68 @@ def log_time(func):
         return result
     return wrapper
 
+
 @log_time
 def load_twitch_data():
-        path_streams = Path("/usr/lib/memgraph/import-data/streamers.csv")
-        path_teams = Path("/usr/lib/memgraph/import-data/teams.csv")
-        path_vips = Path("/usr/lib/memgraph/import-data/vips.csv")
-        path_moderators = Path("/usr/lib/memgraph/import-data/moderators.csv")
-        path_chatters = Path("/usr/lib/memgraph/import-data/chatters.csv")
+    path_streams = Path("/usr/lib/memgraph/import-data/streamers.csv")
+    path_teams = Path("/usr/lib/memgraph/import-data/teams.csv")
+    path_vips = Path("/usr/lib/memgraph/import-data/vips.csv")
+    path_moderators = Path("/usr/lib/memgraph/import-data/moderators.csv")
+    path_chatters = Path("/usr/lib/memgraph/import-data/chatters.csv")
 
-        memgraph.execute(
-            f"""LOAD CSV FROM "{path_streams}"
+    memgraph.execute(
+        f"""LOAD CSV FROM "{path_streams}"
             WITH HEADER DELIMITER "," AS row
             CREATE (u:User:Stream {{id: ToString(row.user_id), name: Tostring(row.user_name), url: ToString(row.thumbnail_url), followers: ToInteger(row.followers), createdAt: ToString(row.created_at), totalViewCount: ToInteger(row.view_count), description: ToString(row.description)}})
             MERGE (l:Language {{name: ToString(row.language)}})
             CREATE (u)-[:SPEAKS]->(l)
-            MERGE (g:Game{{name: ToString(row.game_name)}})
+            MERGE (g:Game{{name: ToString(row.game_name)}}) 
             CREATE (u)-[:PLAYS]->(g);"""
-        )
+    )
 
-        memgraph.execute(
-            f"""CREATE INDEX ON :User(id);"""
-        )
+    memgraph.execute(
+        f"""CREATE INDEX ON :User(id);"""
+    )
 
-        memgraph.execute(
-            f"""CREATE INDEX ON :User(name);"""
-        )
+    memgraph.execute(
+        f"""CREATE INDEX ON :User(name);"""
+    )
 
-        memgraph.execute(
-            f"""LOAD CSV FROM "{path_teams}"
+    memgraph.execute(
+        f"""LOAD CSV FROM "{path_teams}"
             WITH HEADER DELIMITER "," AS row
             MATCH (s:User:Stream)
             WHERE s.id = toString(row.user_id)
             MERGE (t:Team {{name: toString(row.team_name)}})
             CREATE (s)-[:IS_PART_OF]->(t);"""
-        )
+    )
 
-        memgraph.execute(
-            f"""LOAD CSV FROM "{path_vips}"
+    memgraph.execute(
+        f"""LOAD CSV FROM "{path_vips}"
             WITH HEADER DELIMITER "," AS row
             MATCH (s:User:Stream)
             WHERE s.id = toString(row.user_id)
             MERGE (v:User {{name: toString(row.vip_login)}})
             CREATE (v)-[:VIP]->(s);"""
-        )
+    )
 
-        memgraph.execute(
-            f"""LOAD CSV FROM "{path_moderators}"
+    memgraph.execute(
+        f"""LOAD CSV FROM "{path_moderators}"
             WITH HEADER DELIMITER "," AS row
             MATCH (s:User:Stream)
             WHERE s.id = toString(row.user_id)
             MERGE(m:User {{name: toString(row.moderator_login)}})
             CREATE (m)-[:MODERATOR]->(s);"""
-        )
+    )
 
-        memgraph.execute(
-            f"""LOAD CSV FROM "{path_chatters}"
+    memgraph.execute(
+        f"""LOAD CSV FROM "{path_chatters}"
             WITH HEADER DELIMITER "," AS row
             MATCH (s:User {{id: row.user_id}})
             MERGE (c:User {{name: row.chatter_login}})
             CREATE (c)-[:CHATTER]->(s);"""
-        )
+    )
+
 
 @app.route("/page-rank", methods=["GET"])
 @log_time
@@ -140,7 +146,7 @@ def get_page_rank():
             WHERE node:Stream OR node:User
             RETURN node, rank
             ORDER BY rank DESC
-            LIMIT 50; """ #sort in memgraph (order by)
+            LIMIT 50; """  # sort in memgraph (order by)
         )
 
         page_rank_dict = dict()
@@ -153,14 +159,15 @@ def get_page_rank():
             dict_copy = page_rank_dict.copy()
             page_rank_list.append(dict_copy)
 
-        response = {"page_rank" : page_rank_list}
+        response = {"page_rank": page_rank_list}
 
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching users' ranks using pagerank went wrong.")
         log.info(e)
         return ("", 500)
+
 
 @app.route("/betweenness-centrality", methods=["GET"])
 @log_time
@@ -188,9 +195,9 @@ def get_bc():
             dict_copy = bc_dict.copy()
             bc_list.append(dict_copy)
 
-        response = {"bc" : bc_list}
+        response = {"bc": bc_list}
 
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching betweenness centrality went wrong.")
@@ -229,7 +236,7 @@ def get_top_streamers_by_views(num_of_streamers):
             for view_count in views_list
         ]
         response = {"streamers": streamers, "views": views}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top streamers by views went wrong.")
@@ -269,7 +276,7 @@ def get_top_streamers_by_followers(num_of_streamers):
         ]
 
         response = {"streamers": streamers, "followers": followers}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top streamers by followers went wrong.")
@@ -309,7 +316,7 @@ def get_top_games(num_of_games):
         ]
 
         response = {"games": games, "players": players}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top games went wrong.")
@@ -349,7 +356,7 @@ def get_top_teams(num_of_teams):
         ]
 
         response = {"teams": teams, "members": members}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
@@ -388,7 +395,7 @@ def get_top_vips(num_of_vips):
             for streamer_count in streamers_list
         ]
         response = {"vips": vips, "streamers": streamers}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top vips went wrong.")
@@ -427,7 +434,7 @@ def get_top_moderators(num_of_moderators):
             for streamer_count in streamers_list
         ]
         response = {"moderators": moderators, "streamers": streamers}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top moderators went wrong.")
@@ -483,16 +490,15 @@ def get_streamer(streamer_name):
                 {"id": node_id, "label": node_label, "name": node_name}
                 for node_id, node_label, node_name in nodes_set
             ]
-            links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
+            links = [{"source": n_id, "target": m_id}
+                     for (n_id, m_id) in links_set]
         # If the streamer doesn't exist, return empty response
         else:
             nodes = []
             links = []
 
         response = {"nodes": nodes, "links": links}
-        return Response(dumps(response), status=200, mimetype="application/json")
-
-
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching streamer by name went wrong.")
@@ -506,42 +512,42 @@ def get_streamers(language, game):
     """Get all streamers who stream certain game in certain language."""
     try:
         results = memgraph.execute_and_fetch(
-            f"""MATCH(u:Stream)-[:SPEAKS]->(l:Language {{name: "{language}"}})
-            MATCH (u)-[:PLAYS]->(g:Game {{name:"{game}"}})
-            RETURN u,g,l;"""
+            f"""MATCH(s:Stream)-[:SPEAKS]->(l:Language {{name: "{language}"}})
+            MATCH (s)-[:PLAYS]->(g:Game {{name:"{game}"}})
+            RETURN s,g,l;"""
         )
 
         nodes_set = set()
         links_set = set()
 
         for result in results:
-            source_id = result['u'].properties['id']
-            source_name = result['u'].properties['name']
-            source_label = 'Stream'
+            streamer_id = result['s'].properties['id']
+            streamer_name = result['s'].properties['name']
+            streamer_label = 'Stream'
 
-            target_1_id = result['g'].properties['name']
-            target_1_name = result['g'].properties['name']
-            target_1_label = 'Game'
+            game_id = result['g'].properties['name']
+            game_name = result['g'].properties['name']
+            game_label = 'Game'
 
-            target_2_id = result['l'].properties['name']
-            target_2_name = result['l'].properties['name']
-            target_2_label = 'Language'
+            language_id = result['l'].properties['name']
+            language_name = result['l'].properties['name']
+            language_label = 'Language'
 
-            nodes_set.add((source_id, source_name, source_label))
-            nodes_set.add((target_1_id, target_1_name, target_1_label))
-            nodes_set.add((target_2_id, target_2_name, target_2_label))
+            nodes_set.add((streamer_id, streamer_name, streamer_label))
+            nodes_set.add((game_id, game_name, game_label))
+            nodes_set.add((language_id, language_name, language_label))
 
-            if (source_id, target_1_id) not in links_set and (
-                    target_1_id,
-                    source_id,
-                ) not in links_set:
-                    links_set.add((source_id, target_1_id))
-            if (source_id, target_2_id) not in links_set and (
-                    target_2_id,
-                    source_id,
-                ) not in links_set:
-                    links_set.add((source_id, target_2_id))
+            if (streamer_id, game_id) not in links_set and (
+                game_id,
+                streamer_id,
+            ) not in links_set:
+                links_set.add((streamer_id, game_id))
 
+            if (streamer_id, language_id) not in links_set and (
+                language_id,
+                streamer_id,
+            ) not in links_set:
+                links_set.add((streamer_id, language_id))
 
         nodes = [
             {"id": node_id, "name": node_name, "label": node_label}
@@ -550,12 +556,13 @@ def get_streamers(language, game):
         links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
 
         response = {"nodes": nodes, "links": links}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Data fetching went wrong.")
         log.info(e)
         return ("", 500)
+
 
 @app.route("/streamers", methods=["GET"])
 @log_time
@@ -572,17 +579,18 @@ def get_all_streamers_names():
         for result in results:
             streamer_name = result['streamer_name']
             view_count = result['view_count']
-            streamer = {"title": streamer_name, "description": "streamer", "image": "image", "price": str(view_count)}
+            streamer = {"title": streamer_name, "description": "streamer",
+                        "image": "image", "price": str(view_count)}
             streamers_list.append(streamer)
 
         response = {"streamers": streamers_list}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
         log.info(e)
         return ("", 500)
- 
+
 
 @app.route("/games", methods=["GET"])
 @log_time
@@ -598,16 +606,18 @@ def get_all_games_names():
 
         for result in results:
             game_name = result['game_name']
-            game = {"title": game_name, "description": "game", "image": "image", "price": "0"}
+            game = {"title": game_name, "description": "game",
+                    "image": "image", "price": "0"}
             games_list.append(game)
 
         response = {"games": games_list}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
         log.info(e)
         return ("", 500)
+
 
 @app.route("/languages", methods=["GET"])
 @log_time
@@ -623,16 +633,18 @@ def get_all_languages_names():
 
         for result in results:
             language_name = result['language_name']
-            language = {"title": language_name, "description": "language", "image": "image", "price": "0"}
+            language = {"title": language_name,
+                        "description": "language", "image": "image", "price": "0"}
             languages_list.append(language)
 
         response = {"languages": languages_list}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching all languages went wrong.")
         log.info(e)
         return ("", 500)
+
 
 @app.route("/nodes", methods=["GET"])
 @log_time
@@ -648,7 +660,7 @@ def get_nodes():
             num_of_nodes = result['nodes']
 
         response = {"nodes": num_of_nodes}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching number of nodes went wrong.")
@@ -670,7 +682,7 @@ def get_edges():
             num_of_edges = result['edges']
 
         response = {"edges": num_of_edges}
-        return Response(dumps(response), status=200, mimetype="application/json")
+        return Response(response=dumps(response), status=200, mimetype="application/json")
 
     except Exception as e:
         log.info("Fetching number of nodes went wrong.")
@@ -697,10 +709,12 @@ def load_data():
 def index():
     return render_template("index.html")
 
+
 def main():
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         load_data()
     app.run(host=args.host, port=args.port, debug=args.debug)
+
 
 if __name__ == "__main__":
     main()

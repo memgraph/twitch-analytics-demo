@@ -58,7 +58,7 @@ def get_page_rank():
             WHERE node:Stream OR node:User
             RETURN node, rank
             ORDER BY rank DESC
-            LIMIT 50; """  # sort in memgraph (order by)
+            LIMIT 50; """
         )
 
         page_rank_dict = dict()

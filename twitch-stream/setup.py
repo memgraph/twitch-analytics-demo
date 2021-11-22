@@ -53,7 +53,7 @@ def run(memgraph, kafka_ip, kafka_port):
 
     log.info("Creating stream connections on Memgraph")
     memgraph.execute(
-        "CREATE STREAM chatter_stream TOPICS chatters TRANSFORM twitch.chatters")
+        "CREATE KAFKA STREAM chatter_stream TOPICS chatters TRANSFORM twitch.chatters")
     memgraph.execute("START STREAM chatter_stream")
 
     # TODO: What to do when a new object is created

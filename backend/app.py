@@ -89,11 +89,11 @@ def get_bc():
     try:
         results = memgraph.execute_and_fetch(
             """CALL betweenness_centrality.get()
-            YIELD node, betweeenness_centrality
-            WITH node, betweeenness_centrality
+            YIELD node, betweenness_centrality
+            WITH node, betweenness_centrality
             WHERE node:Stream OR node:User
-            RETURN node, betweeenness_centrality
-            ORDER BY betweeenness_centrality DESC
+            RETURN node, betweenness_centrality
+            ORDER BY betweenness_centrality DESC
             LIMIT 50;"""
         )
 
@@ -102,7 +102,7 @@ def get_bc():
 
         for result in results:
             user_name = result["node"].properties["name"]
-            bc = float(result["betweeenness_centrality"])
+            bc = float(result["betweenness_centrality"])
             bc_dict = {"name": user_name, "betweenness_centrality": bc}
             dict_copy = bc_dict.copy()
             bc_list.append(dict_copy)

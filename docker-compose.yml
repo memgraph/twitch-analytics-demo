@@ -38,14 +38,13 @@ services:
       - ./memgraph/import-data:/usr/lib/memgraph/import-data
       - ./memgraph/mg_lib:/var/lib/memgraph
       - ./memgraph/mg_log:/var/log/memgraph
-      - ./memgraph/mg_etc:/etc/memgraph
     entrypoint:
       [
         "/usr/lib/memgraph/memgraph",
         "--telemetry-enabled=false",
         "--kafka-bootstrap-servers=kafka:9092",
         "--query-modules-directory=/usr/lib/memgraph/query_modules",
-        "--log-level=TRACE",
+        "--log-level=TRACE"
       ]
     ports:
       - "7687:7687"
@@ -85,7 +84,13 @@ services:
     build: ./twitch-stream
     volumes:
       - ./twitch-stream:/app
-    entrypoint: ["python3", "dummy.py", "--file=chatters.csv", "--interval=1"]
+    entrypoint:
+      [
+        "python3",
+        "dummy.py",
+        "--file=chatters.csv",
+        "--interval=1"
+      ]
     environment:
       KAFKA_IP: kafka
       KAFKA_PORT: "9092"

@@ -1,2 +1,2 @@
 Flask==1.1.2
-gqlalchemy==1.0.4
+git+https://github.com/memgraph/gqlalchemy.git@add-ogm-data-saving-and-loading

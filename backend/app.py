@@ -1,10 +1,14 @@
-import logging
-import os
 from argparse import ArgumentParser
 from flask import Flask, Response, render_template
-from gqlalchemy import Memgraph
+from gqlalchemy import Memgraph, Node, Field, Relationship, Match
+from pathlib import Path
 from json import dumps
-from database import connect_to_memgraph, load_twitch_data, log_time
+import logging
+import os
+import time
+from functools import wraps
+from csv import reader
+import traceback
 
 log = logging.getLogger(__name__)
 app = Flask(
@@ -13,10 +17,181 @@ app = Flask(
 memgraph = Memgraph()
 
 
+def log_time(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        duration = time.time() - start_time
+        log.info(f"Time for {func.__name__} is {duration}")
+        return result
+
+    return wrapper
+
+
 def init_log():
     logging.basicConfig(level=logging.DEBUG)
     log.info("Logging enabled")
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
+
+
+class User(Node):
+    name: str = Field(index=True, unique=True, db=memgraph)
+
+
+class Stream(Node, _node_labels={"User", "Stream"}):
+    name: str = Field(index=True, unique=True, db=memgraph, label="User")
+    id: str = Field(index=True, unique=True, db=memgraph)
+    url: str = Field()
+    followers: int = Field()
+    createdAt: str = Field()
+    totalViewCount: int = Field()
+    description: str = Field()
+
+
+class Language(Node):
+    name: str = Field(unique=True, db=memgraph)
+
+
+class Game(Node):
+    name: str = Field(unique=True, db=memgraph)
+
+
+class Team(Node):
+    name: str = Field(unique=True, db=memgraph)
+
+
+class Speaks(Relationship, _type="SPEAKS"):
+    pass
+
+
+class Plays(Relationship, _type="PLAYS"):
+    pass
+
+
+class IsPartOf(Relationship, _type="IS_PART_OF"):
+    pass
+
+
+class Vip(Relationship, _type="VIP"):
+    pass
+
+
+class Moderator(Relationship, _type="MODERATOR"):
+    pass
+
+
+class Chatter(Relationship, _type="CHATTER"):
+    pass
+
+
+@log_time
+def load_twitch_data():
+    path_streams = Path("import-data/streamers.csv")
+    path_teams = Path("import-data/teams.csv")
+    path_vips = Path("import-data/vips.csv")
+    path_moderators = Path("import-data/moderators.csv")
+    path_chatters = Path("import-data/chatters.csv")
+
+    log.info("Loading Twitch data.")
+    try:
+        with open(path_streams) as read_obj:
+            csv_reader = reader(read_obj)
+            header = next(csv_reader)
+            if header != None:
+                for row in csv_reader:
+                    stream = Stream(
+                        id=row[1],
+                        name=row[3],
+                        url=row[6],
+                        followers=row[7],
+                        createdAt=row[10],
+                        totalViewCount=row[9],
+                        description=row[8],
+                    ).save(memgraph)
+
+                    language = Language(name=row[5]).save(memgraph)
+                    game = Game(name=row[4]).save(memgraph)
+
+                    speaks_rel = Speaks(
+                        _start_node_id=stream._id, _end_node_id=language._id
+                    ).save(memgraph)
+
+                    plays_rel = Plays(
+                        _start_node_id=stream._id, _end_node_id=game._id
+                    ).save(memgraph)
+
+    except Exception as e:
+        traceback.print_exc()
+        # log.info(e)
+    try:
+        with open(path_teams) as read_obj:
+            csv_reader = reader(read_obj)
+            header = next(csv_reader)
+            if header != None:
+                for row in csv_reader:
+                    stream = next(
+                        Match()
+                        .node("Stream", variable="stream")
+                        .where("stream.id", "=", row[0])
+                        .execute()
+                    )["stream"]
+                    team = Team(name=row[1]).save(memgraph)
+                    is_part_of_rel = IsPartOf(
+                        _start_node_id=stream._id, _end_node_id=team._id
+                    ).save(memgraph)
+    except Exception as e:
+        traceback.print_exc()
+
+    with open(path_vips) as read_obj:
+        csv_reader = reader(read_obj)
+        header = next(csv_reader)
+        if header != None:
+            for row in csv_reader:
+                stream = next(
+                    Match()
+                    .node("Stream", variable="s")
+                    .where("s.id", "=", row[0])
+                    .execute()
+                )["s"]
+                vip = User(name=row[1]).save(memgraph)
+                vip_rel = Vip(_start_node_id=stream._id, _end_node_id=vip._id).save(
+                    memgraph
+                )
+
+    with open(path_moderators) as read_obj:
+        csv_reader = reader(read_obj)
+        header = next(csv_reader)
+        if header != None:
+            for row in csv_reader:
+                stream = next(
+                    Match()
+                    .node("Stream", variable="s")
+                    .where("s.id", "=", row[0])
+                    .execute()
+                )["s"]
+                moderator = User(name=row[1]).save(memgraph)
+                moderator_rel = Moderator(
+                    _start_node_id=stream._id, _end_node_id=moderator._id
+                ).save(memgraph)
+    try:
+        with open(path_chatters) as read_obj:
+            csv_reader = reader(read_obj)
+            header = next(csv_reader)
+            if header != None:
+                for row in csv_reader:
+                    stream = next(
+                        Match()
+                        .node("Stream", variable="s")
+                        .where("s.id", "=", row[0])
+                        .execute()
+                    )["s"]
+                    chatter = User(name=row[1]).save(memgraph)
+                    chatter_rel = Chatter(
+                        _start_node_id=stream._id, _end_node_id=chatter._id
+                    ).save(memgraph)
+    except Exception as e:
+        traceback.print_exc()
 
 
 def parse_args():
@@ -35,7 +210,7 @@ def parse_args():
         "--populate",
         dest="populate",
         action="store_true",
-        help="Run app with data loading."
+        help="Run app with data loading.",
     )
     parser.set_defaults(populate=False)
     log.info(__doc__)
@@ -73,7 +248,9 @@ def get_page_rank():
 
         response = {"page_rank": page_rank_list}
 
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching users' ranks using pagerank went wrong.")
@@ -109,7 +286,9 @@ def get_bc():
 
         response = {"bc": bc_list}
 
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching betweenness centrality went wrong.")
@@ -123,6 +302,7 @@ def get_top_streamers_by_views(num_of_streamers):
     """Get top num_of_streamers streamers by total number of views."""
 
     try:
+
         results = memgraph.execute_and_fetch(
             f"""MATCH(u:Stream)
             RETURN u.name as streamer, u.totalViewCount as total_view_count
@@ -134,21 +314,17 @@ def get_top_streamers_by_views(num_of_streamers):
         views_list = list()
 
         for result in results:
-            streamer_name = result['streamer']
-            total_views = result['total_view_count']
+            streamer_name = result["streamer"]
+            total_views = result["total_view_count"]
             streamers_list.append(streamer_name)
             views_list.append(total_views)
 
-        streamers = [
-            {"name": streamer_name}
-            for streamer_name in streamers_list
-        ]
-        views = [
-            {"views": view_count}
-            for view_count in views_list
-        ]
+        streamers = [{"name": streamer_name} for streamer_name in streamers_list]
+        views = [{"views": view_count} for view_count in views_list]
         response = {"streamers": streamers, "views": views}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top streamers by views went wrong.")
@@ -173,22 +349,18 @@ def get_top_streamers_by_followers(num_of_streamers):
         followers_list = list()
 
         for result in results:
-            streamer_name = result['streamer']
-            num_of_followers = result['num_of_followers']
+            streamer_name = result["streamer"]
+            num_of_followers = result["num_of_followers"]
             streamers_list.append(streamer_name)
             followers_list.append(num_of_followers)
 
-        streamers = [
-            {"name": streamer_name}
-            for streamer_name in streamers_list
-        ]
-        followers = [
-            {"followers": follower_count}
-            for follower_count in followers_list
-        ]
+        streamers = [{"name": streamer_name} for streamer_name in streamers_list]
+        followers = [{"followers": follower_count} for follower_count in followers_list]
 
         response = {"streamers": streamers, "followers": followers}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top streamers by followers went wrong.")
@@ -213,22 +385,18 @@ def get_top_games(num_of_games):
         players_list = list()
 
         for result in results:
-            game_name = result['game_name']
-            num_of_players = result['number_of_players']
+            game_name = result["game_name"]
+            num_of_players = result["number_of_players"]
             games_list.append(game_name)
             players_list.append(num_of_players)
 
-        games = [
-            {"name": game_name}
-            for game_name in games_list
-        ]
-        players = [
-            {"players": player_count}
-            for player_count in players_list
-        ]
+        games = [{"name": game_name} for game_name in games_list]
+        players = [{"players": player_count} for player_count in players_list]
 
         response = {"games": games, "players": players}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top games went wrong.")
@@ -253,22 +421,18 @@ def get_top_teams(num_of_teams):
         members_list = list()
 
         for result in results:
-            team_name = result['team_name']
-            num_of_members = result['number_of_members']
+            team_name = result["team_name"]
+            num_of_members = result["number_of_members"]
             teams_list.append(team_name)
             members_list.append(num_of_members)
 
-        teams = [
-            {"name": team_name}
-            for team_name in teams_list
-        ]
-        members = [
-            {"members": member_count}
-            for member_count in members_list
-        ]
+        teams = [{"name": team_name} for team_name in teams_list]
+        members = [{"members": member_count} for member_count in members_list]
 
         response = {"teams": teams, "members": members}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
@@ -293,21 +457,17 @@ def get_top_vips(num_of_vips):
         streamers_list = list()
 
         for result in results:
-            vip_name = result['vip_name']
-            num_of_streamers = result['number_of_streamers']
+            vip_name = result["vip_name"]
+            num_of_streamers = result["number_of_streamers"]
             vips_list.append(vip_name)
             streamers_list.append(num_of_streamers)
 
-        vips = [
-            {"name": vip_name}
-            for vip_name in vips_list
-        ]
-        streamers = [
-            {"streamers": streamer_count}
-            for streamer_count in streamers_list
-        ]
+        vips = [{"name": vip_name} for vip_name in vips_list]
+        streamers = [{"streamers": streamer_count} for streamer_count in streamers_list]
         response = {"vips": vips, "streamers": streamers}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top vips went wrong.")
@@ -332,21 +492,17 @@ def get_top_moderators(num_of_moderators):
         streamers_list = list()
 
         for result in results:
-            moderator_name = result['moderator_name']
-            num_of_streamers = result['number_of_streamers']
+            moderator_name = result["moderator_name"]
+            num_of_streamers = result["number_of_streamers"]
             moderators_list.append(moderator_name)
             streamers_list.append(num_of_streamers)
 
-        moderators = [
-            {"name": moderator_name}
-            for moderator_name in moderators_list
-        ]
-        streamers = [
-            {"streamers": streamer_count}
-            for streamer_count in streamers_list
-        ]
+        moderators = [{"name": moderator_name} for moderator_name in moderators_list]
+        streamers = [{"streamers": streamer_count} for streamer_count in streamers_list]
         response = {"moderators": moderators, "streamers": streamers}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top moderators went wrong.")
@@ -367,13 +523,15 @@ def get_streamer(streamer_name):
         )
 
         for counter in counters:
-            if(counter['name_counter'] == 0):
+            if counter["name_counter"] == 0:
                 is_streamer = False
 
         # If the streamer exists, return its relationships
-        if(is_streamer):
+        if is_streamer:
             results = memgraph.execute_and_fetch(
-                """MATCH (u:User {name:'""" + str(streamer_name) + """'})-[]->(n)
+                """MATCH (u:User {name:'"""
+                + str(streamer_name)
+                + """'})-[]->(n)
                 RETURN u,n;"""
             )
 
@@ -381,13 +539,13 @@ def get_streamer(streamer_name):
             nodes_set = set()
 
             for result in results:
-                source_id = result['u'].properties['id']
-                source_name = result['u'].properties['name']
-                source_label = 'Stream'
+                source_id = result["u"].properties["id"]
+                source_name = result["u"].properties["name"]
+                source_label = "Stream"
 
-                target_id = result['n'].properties['name']
-                target_name = result['n'].properties['name']
-                target_label = list(result['n'].labels)[0]
+                target_id = result["n"].properties["name"]
+                target_name = result["n"].properties["name"]
+                target_label = list(result["n"].labels)[0]
 
                 nodes_set.add((source_id, source_label, source_name))
                 nodes_set.add((target_id, target_label, target_name))
@@ -402,15 +560,16 @@ def get_streamer(streamer_name):
                 {"id": node_id, "label": node_label, "name": node_name}
                 for node_id, node_label, node_name in nodes_set
             ]
-            links = [{"source": n_id, "target": m_id}
-                     for (n_id, m_id) in links_set]
+            links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
         # If the streamer doesn't exist, return empty response
         else:
             nodes = []
             links = []
 
         response = {"nodes": nodes, "links": links}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching streamer by name went wrong.")
@@ -433,17 +592,17 @@ def get_streamers(language, game):
         links_set = set()
 
         for result in results:
-            streamer_id = result['s'].properties['id']
-            streamer_name = result['s'].properties['name']
-            streamer_label = 'Stream'
+            streamer_id = result["s"].properties["id"]
+            streamer_name = result["s"].properties["name"]
+            streamer_label = "Stream"
 
-            game_id = result['g'].properties['name']
-            game_name = result['g'].properties['name']
-            game_label = 'Game'
+            game_id = result["g"].properties["name"]
+            game_name = result["g"].properties["name"]
+            game_label = "Game"
 
-            language_id = result['l'].properties['name']
-            language_name = result['l'].properties['name']
-            language_label = 'Language'
+            language_id = result["l"].properties["name"]
+            language_name = result["l"].properties["name"]
+            language_label = "Language"
 
             nodes_set.add((streamer_id, streamer_name, streamer_label))
             nodes_set.add((game_id, game_name, game_label))
@@ -468,7 +627,9 @@ def get_streamers(language, game):
         links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
 
         response = {"nodes": nodes, "links": links}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Data fetching went wrong.")
@@ -489,14 +650,20 @@ def get_all_streamers_names():
         streamers_list = list()
 
         for result in results:
-            streamer_name = result['streamer_name']
-            view_count = result['view_count']
-            streamer = {"title": streamer_name, "description": "streamer",
-                        "image": "image", "price": str(view_count)}
+            streamer_name = result["streamer_name"]
+            view_count = result["view_count"]
+            streamer = {
+                "title": streamer_name,
+                "description": "streamer",
+                "image": "image",
+                "price": str(view_count),
+            }
             streamers_list.append(streamer)
 
         response = {"streamers": streamers_list}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
@@ -517,13 +684,19 @@ def get_all_games_names():
         games_list = list()
 
         for result in results:
-            game_name = result['game_name']
-            game = {"title": game_name, "description": "game",
-                    "image": "image", "price": "0"}
+            game_name = result["game_name"]
+            game = {
+                "title": game_name,
+                "description": "game",
+                "image": "image",
+                "price": "0",
+            }
             games_list.append(game)
 
         response = {"games": games_list}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
@@ -544,13 +717,19 @@ def get_all_languages_names():
         languages_list = list()
 
         for result in results:
-            language_name = result['language_name']
-            language = {"title": language_name,
-                        "description": "language", "image": "image", "price": "0"}
+            language_name = result["language_name"]
+            language = {
+                "title": language_name,
+                "description": "language",
+                "image": "image",
+                "price": "0",
+            }
             languages_list.append(language)
 
         response = {"languages": languages_list}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching all languages went wrong.")
@@ -569,10 +748,12 @@ def get_nodes():
         )
 
         for result in results:
-            num_of_nodes = result['nodes']
+            num_of_nodes = result["nodes"]
 
         response = {"nodes": num_of_nodes}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching number of nodes went wrong.")
@@ -591,10 +772,12 @@ def get_edges():
         )
 
         for result in results:
-            num_of_edges = result['edges']
+            num_of_edges = result["edges"]
 
         response = {"edges": num_of_edges}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching number of nodes went wrong.")
@@ -612,7 +795,7 @@ def load_data():
     log.info("Loading data into Memgraph.")
     try:
         memgraph.drop_database()
-        load_twitch_data(memgraph)
+        load_twitch_data()
     except Exception as e:
         log.info("Data loading error.")
 
@@ -622,9 +805,20 @@ def index():
     return render_template("index.html")
 
 
+def connect_to_memgraph():
+    connection_established = False
+    while not connection_established:
+        try:
+            if memgraph._get_cached_connection().is_active():
+                connection_established = True
+        except:
+            log.info("Memgraph probably isn't running.")
+            time.sleep(4)
+
+
 def main():
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        connect_to_memgraph(memgraph)
+        connect_to_memgraph()
         init_log()
         load_data()
     app.run(host=args.host, port=args.port, debug=args.debug)

@@ -520,32 +520,30 @@ def get_top_moderators(num_of_moderators):
 @log_time
 def get_streamer(streamer_name):
     """Get info about streamer whose name is streamer_name."""
-    is_streamer = True
     try:
-        # Check whether streamer with the given name exists
-        counters = memgraph.execute_and_fetch(
-            f"""MATCH (u:User {{name:"{streamer_name}"}})
-            RETURN COUNT(u) AS name_counter;"""
+        counter = len(
+            list(
+                Match().node("User", "u").where("u.name", "=", streamer_name).execute()
+            )
         )
 
-        for counter in counters:
-            if counter["name_counter"] == 0:
-                is_streamer = False
-
         # If the streamer exists, return its relationships
-        if is_streamer:
-            results = memgraph.execute_and_fetch(
-                """MATCH (u:User {name:'"""
-                + str(streamer_name)
-                + """'})-[]->(n)
-                RETURN u,n;"""
+        if counter != 0:
+
+            results = list(
+                Match()
+                .node("User", variable="u")
+                .to()
+                .node(variable="n")
+                .where("u.name", "=", streamer_name)
+                .execute()
             )
 
             links_set = set()
             nodes_set = set()
 
             for result in results:
-                source_id = result["u"].id  # or _id?
+                source_id = result["u"].id
                 source_name = result["u"].name
                 source_label = "Stream"
 
@@ -590,10 +588,18 @@ def get_streamer(streamer_name):
 def get_streamers(language, game):
     """Get all streamers who stream certain game in certain language."""
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH(s:Stream)-[:SPEAKS]->(l:Language {{name: "{language}"}})
-            MATCH (s)-[:PLAYS]->(g:Game {{name:"{game}"}})
-            RETURN s,g,l;"""
+        results = list(
+            Match()
+            .node("Stream", variable="s")
+            .to("SPEAKS")
+            .node("Language", variable="l")
+            .where("l.name", "=", language)
+            .match()
+            .node(variable="s")
+            .to("PLAYS")
+            .node("Game", variable="g")
+            .where("g.name", "=", game)
+            .execute()
         )
 
         nodes_set = set()
@@ -650,16 +656,13 @@ def get_streamers(language, game):
 def get_all_streamers_names():
     """Get the names of all streamers."""
     try:
-        results = memgraph.execute_and_fetch(
-            """MATCH (n:Stream)
-                RETURN n.name AS streamer_name, n.totalViewCount AS view_count;"""
-        )
+        results = list(Match().node("Stream", variable="stream").execute())
 
         streamers_list = list()
 
         for result in results:
-            streamer_name = result["streamer_name"]
-            view_count = result["view_count"]
+            streamer_name = result["stream"].name
+            view_count = result["stream"].totalViewCount
             streamer = {
                 "title": streamer_name,
                 "description": "streamer",
@@ -684,15 +687,12 @@ def get_all_streamers_names():
 def get_all_games_names():
     """Get the names of all games."""
     try:
-        results = memgraph.execute_and_fetch(
-            """MATCH(n:Game)
-                RETURN n.name AS game_name;"""
-        )
+        results = list(Match().node("Game", variable="game").execute())
 
         games_list = list()
 
         for result in results:
-            game_name = result["game_name"]
+            game_name = result["game"].name
             game = {
                 "title": game_name,
                 "description": "game",
@@ -717,15 +717,11 @@ def get_all_games_names():
 def get_all_languages_names():
     """Get the names of all languages."""
     try:
-        results = memgraph.execute_and_fetch(
-            """MATCH(n:Language)
-                RETURN n.name AS language_name;"""
-        )
-
+        results = list(Match().node("Language", variable="lang").execute())
         languages_list = list()
 
         for result in results:
-            language_name = result["language_name"]
+            language_name = result["lang"].name
             language = {
                 "title": language_name,
                 "description": "language",
@@ -750,13 +746,7 @@ def get_all_languages_names():
 def get_nodes():
     """Get the number of nodes in database."""
     try:
-        results = memgraph.execute_and_fetch(
-            """MATCH ()
-            RETURN count(*) AS nodes;"""
-        )
-
-        for result in results:
-            num_of_nodes = result["nodes"]
+        num_of_nodes = len(list(Match().node(variable="node").execute()))
 
         response = {"nodes": num_of_nodes}
         return Response(
@@ -774,13 +764,7 @@ def get_nodes():
 def get_edges():
     """Get the number of edges in database."""
     try:
-        results = memgraph.execute_and_fetch(
-            """MATCH ()-[r]->()
-            RETURN count(r) AS edges;"""
-        )
-
-        for result in results:
-            num_of_edges = result["edges"]
+        num_of_edges = len(list(Match().node().to(variable="r").node().execute()))
 
         response = {"edges": num_of_edges}
         return Response(

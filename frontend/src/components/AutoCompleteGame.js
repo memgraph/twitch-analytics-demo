@@ -108,7 +108,7 @@ function AutoCompleteGame(props) {
         });
       }, 300);
     },
-    [fetchGames]
+    [games]
   );
 
   const handleSearchChangeL = React.useCallback(
@@ -132,7 +132,7 @@ function AutoCompleteGame(props) {
         });
       }, 300);
     },
-    [fetchLanguages]
+    [languages]
   );
 
   React.useEffect(() => {

@@ -71,7 +71,7 @@ function AutoSearch(props) {
         });
       }, 300);
     },
-    [fetchNames]
+    [streamers]
   );
   React.useEffect(() => {
     return () => {

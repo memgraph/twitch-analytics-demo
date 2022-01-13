@@ -35,6 +35,32 @@ def init_log():
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
 
+def parse_args():
+    """Parse command line arguments."""
+
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument("--host", default="0.0.0.0", help="Host address.")
+    parser.add_argument("--port", default=5000, type=int, help="App port.")
+    parser.add_argument(
+        "--debug",
+        default=True,
+        action="store_true",
+        help="Run web server in debug mode.",
+    )
+    parser.add_argument(
+        "--populate",
+        dest="populate",
+        action="store_true",
+        help="Run app with data loading.",
+    )
+    parser.set_defaults(populate=False)
+    log.info(__doc__)
+    return parser.parse_args()
+
+
+args = parse_args()
+
+
 class User(Node):
     name: str = Field(index=True, unique=True, db=memgraph)
 
@@ -85,65 +111,54 @@ class Chatter(Relationship, _type="CHATTER"):
     pass
 
 
-@log_time
-def load_twitch_data():
-    path_streams = Path("import-data/streamers.csv")
-    path_teams = Path("import-data/teams.csv")
-    path_vips = Path("import-data/vips.csv")
-    path_moderators = Path("import-data/moderators.csv")
-    path_chatters = Path("import-data/chatters.csv")
+def load_streams(path):
+    with open(path) as read_obj:
+        csv_reader = reader(read_obj)
+        header = next(csv_reader)
+        if header != None:
+            for row in csv_reader:
+                stream = Stream(
+                    id=row[1],
+                    name=row[3],
+                    url=row[6],
+                    followers=row[7],
+                    createdAt=row[10],
+                    totalViewCount=row[9],
+                    description=row[8],
+                ).save(memgraph)
 
-    log.info("Loading Twitch data.")
-    try:
-        with open(path_streams) as read_obj:
-            csv_reader = reader(read_obj)
-            header = next(csv_reader)
-            if header != None:
-                for row in csv_reader:
-                    stream = Stream(
-                        id=row[1],
-                        name=row[3],
-                        url=row[6],
-                        followers=row[7],
-                        createdAt=row[10],
-                        totalViewCount=row[9],
-                        description=row[8],
-                    ).save(memgraph)
+                language = Language(name=row[5]).save(memgraph)
+                game = Game(name=row[4]).save(memgraph)
 
-                    language = Language(name=row[5]).save(memgraph)
-                    game = Game(name=row[4]).save(memgraph)
+                speaks_rel = Speaks(
+                    _start_node_id=stream._id, _end_node_id=language._id
+                ).save(memgraph)
 
-                    speaks_rel = Speaks(
-                        _start_node_id=stream._id, _end_node_id=language._id
-                    ).save(memgraph)
+                plays_rel = Plays(
+                    _start_node_id=stream._id, _end_node_id=game._id
+                ).save(memgraph)
 
-                    plays_rel = Plays(
-                        _start_node_id=stream._id, _end_node_id=game._id
-                    ).save(memgraph)
 
-    except Exception as e:
-        traceback.print_exc()
-        # log.info(e)
-    try:
-        with open(path_teams) as read_obj:
-            csv_reader = reader(read_obj)
-            header = next(csv_reader)
-            if header != None:
-                for row in csv_reader:
-                    stream = next(
-                        Match()
-                        .node("Stream", variable="stream")
-                        .where("stream.id", "=", row[0])
-                        .execute()
-                    )["stream"]
-                    team = Team(name=row[1]).save(memgraph)
-                    is_part_of_rel = IsPartOf(
-                        _start_node_id=stream._id, _end_node_id=team._id
-                    ).save(memgraph)
-    except Exception as e:
-        traceback.print_exc()
+def load_teams(path):
+    with open(path) as read_obj:
+        csv_reader = reader(read_obj)
+        header = next(csv_reader)
+        if header != None:
+            for row in csv_reader:
+                stream = next(
+                    Match()
+                    .node("Stream", variable="stream")
+                    .where("stream.id", "=", row[0])
+                    .execute()
+                )["stream"]
+                team = Team(name=row[1]).save(memgraph)
+                is_part_of_rel = IsPartOf(
+                    _start_node_id=stream._id, _end_node_id=team._id
+                ).save(memgraph)
 
-    with open(path_vips) as read_obj:
+
+def load_vips(path):
+    with open(path) as read_obj:
         csv_reader = reader(read_obj)
         header = next(csv_reader)
         if header != None:
@@ -155,11 +170,13 @@ def load_twitch_data():
                     .execute()
                 )["s"]
                 vip = User(name=row[1]).save(memgraph)
-                vip_rel = Vip(_start_node_id=stream._id, _end_node_id=vip._id).save(
+                vip_rel = Vip(_start_node_id=vip._id, _end_node_id=stream._id).save(
                     memgraph
                 )
 
-    with open(path_moderators) as read_obj:
+
+def load_moderators(path):
+    with open(path) as read_obj:
         csv_reader = reader(read_obj)
         header = next(csv_reader)
         if header != None:
@@ -172,52 +189,41 @@ def load_twitch_data():
                 )["s"]
                 moderator = User(name=row[1]).save(memgraph)
                 moderator_rel = Moderator(
-                    _start_node_id=stream._id, _end_node_id=moderator._id
+                    _start_node_id=moderator._id, _end_node_id=stream._id
                 ).save(memgraph)
-    try:
-        with open(path_chatters) as read_obj:
-            csv_reader = reader(read_obj)
-            header = next(csv_reader)
-            if header != None:
-                for row in csv_reader:
-                    stream = next(
-                        Match()
-                        .node("Stream", variable="s")
-                        .where("s.id", "=", row[0])
-                        .execute()
-                    )["s"]
-                    chatter = User(name=row[1]).save(memgraph)
-                    chatter_rel = Chatter(
-                        _start_node_id=stream._id, _end_node_id=chatter._id
-                    ).save(memgraph)
-    except Exception as e:
-        traceback.print_exc()
 
 
-def parse_args():
-    """Parse command line arguments."""
-
-    parser = ArgumentParser(description=__doc__)
-    parser.add_argument("--host", default="0.0.0.0", help="Host address.")
-    parser.add_argument("--port", default=5000, type=int, help="App port.")
-    parser.add_argument(
-        "--debug",
-        default=True,
-        action="store_true",
-        help="Run web server in debug mode.",
-    )
-    parser.add_argument(
-        "--populate",
-        dest="populate",
-        action="store_true",
-        help="Run app with data loading.",
-    )
-    parser.set_defaults(populate=False)
-    log.info(__doc__)
-    return parser.parse_args()
+def load_chatters(path):
+    with open(path) as read_obj:
+        csv_reader = reader(read_obj)
+        header = next(csv_reader)
+        if header != None:
+            for row in csv_reader:
+                stream = next(
+                    Match()
+                    .node("Stream", variable="s")
+                    .where("s.id", "=", row[0])
+                    .execute()
+                )["s"]
+                chatter = User(name=row[1]).save(memgraph)
+                chatter_rel = Chatter(
+                    _start_node_id=chatter._id, _end_node_id=stream._id
+                ).save(memgraph)
 
 
-args = parse_args()
+@log_time
+def load_twitch_data():
+    path_streams = Path("import-data/streamers.csv")
+    path_teams = Path("import-data/teams.csv")
+    path_vips = Path("import-data/vips.csv")
+    path_moderators = Path("import-data/moderators.csv")
+    path_chatters = Path("import-data/chatters.csv")
+
+    load_streams(path_streams)
+    load_teams(path_teams)
+    load_vips(path_vips)
+    load_moderators(path_moderators)
+    load_chatters(path_chatters)
 
 
 @app.route("/page-rank", methods=["GET"])
@@ -240,7 +246,7 @@ def get_page_rank():
         page_rank_list = list()
 
         for result in results:
-            user_name = result["node"].properties["name"]
+            user_name = result["node"].name
             rank = float(result["rank"])
             page_rank_dict = {"name": user_name, "rank": rank}
             dict_copy = page_rank_dict.copy()
@@ -278,7 +284,7 @@ def get_bc():
         bc_list = list()
 
         for result in results:
-            user_name = result["node"].properties["name"]
+            user_name = result["node"].name
             bc = float(result["betweenness_centrality"])
             bc_dict = {"name": user_name, "betweenness_centrality": bc}
             dict_copy = bc_dict.copy()
@@ -539,13 +545,15 @@ def get_streamer(streamer_name):
             nodes_set = set()
 
             for result in results:
-                source_id = result["u"].properties["id"]
-                source_name = result["u"].properties["name"]
+                source_id = result["u"].id  # or _id?
+                source_name = result["u"].name
                 source_label = "Stream"
 
-                target_id = result["n"].properties["name"]
-                target_name = result["n"].properties["name"]
-                target_label = list(result["n"].labels)[0]
+                target_id = result["n"].name
+                target_name = result["n"].name
+                target_label = list(result["n"]._node_labels)[0]
+
+                log.info(target_label)
 
                 nodes_set.add((source_id, source_label, source_name))
                 nodes_set.add((target_id, target_label, target_name))
@@ -592,16 +600,16 @@ def get_streamers(language, game):
         links_set = set()
 
         for result in results:
-            streamer_id = result["s"].properties["id"]
-            streamer_name = result["s"].properties["name"]
+            streamer_id = result["s"].id
+            streamer_name = result["s"].name
             streamer_label = "Stream"
 
-            game_id = result["g"].properties["name"]
-            game_name = result["g"].properties["name"]
+            game_id = result["g"].name
+            game_name = result["g"].name
             game_label = "Game"
 
-            language_id = result["l"].properties["name"]
-            language_name = result["l"].properties["name"]
+            language_id = result["l"].name
+            language_name = result["l"].name
             language_label = "Language"
 
             nodes_set.add((streamer_id, streamer_name, streamer_label))

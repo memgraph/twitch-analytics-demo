@@ -65,7 +65,7 @@ class User(Node):
     name: str = Field(index=True, unique=True, db=memgraph)
 
 
-class Stream(Node, _node_labels={"User", "Stream"}):
+class Stream(Node, labels={"User", "Stream"}):
     name: str = Field(index=True, unique=True, db=memgraph, label="User")
     id: str = Field(index=True, unique=True, db=memgraph)
     url: str = Field()
@@ -87,27 +87,27 @@ class Team(Node):
     name: str = Field(unique=True, db=memgraph)
 
 
-class Speaks(Relationship, _type="SPEAKS"):
+class Speaks(Relationship, type="SPEAKS"):
     pass
 
 
-class Plays(Relationship, _type="PLAYS"):
+class Plays(Relationship, type="PLAYS"):
     pass
 
 
-class IsPartOf(Relationship, _type="IS_PART_OF"):
+class IsPartOf(Relationship, type="IS_PART_OF"):
     pass
 
 
-class Vip(Relationship, _type="VIP"):
+class Vip(Relationship, type="VIP"):
     pass
 
 
-class Moderator(Relationship, _type="MODERATOR"):
+class Moderator(Relationship, type="MODERATOR"):
     pass
 
 
-class Chatter(Relationship, _type="CHATTER"):
+class Chatter(Relationship, type="CHATTER"):
     pass
 
 
@@ -549,7 +549,7 @@ def get_streamer(streamer_name):
 
                 target_id = result["n"].name
                 target_name = result["n"].name
-                target_label = list(result["n"]._node_labels)[0]
+                target_label = list(result["n"]._labels)[0]
 
                 log.info(target_label)
 
@@ -616,7 +616,7 @@ def get_streamers(language, game):
 
             language_id = result["l"].name
             language_name = result["l"].name
-            language_label = "Language"
+            language_label = result["l"]._label
 
             nodes_set.add((streamer_id, streamer_name, streamer_label))
             nodes_set.add((game_id, game_name, game_label))

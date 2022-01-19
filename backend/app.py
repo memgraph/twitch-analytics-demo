@@ -1,20 +1,21 @@
 from argparse import ArgumentParser
 from flask import Flask, Response, render_template
-from gqlalchemy import Memgraph, Node, Field, Relationship, Match
-from pathlib import Path
+from gqlalchemy import Memgraph, Match, Call
 from json import dumps
 import logging
 import os
 import time
 from functools import wraps
-from csv import reader
 import traceback
+import twitch_data
+
+memgraph = Memgraph()
 
 log = logging.getLogger(__name__)
 app = Flask(
     __name__,
 )
-memgraph = Memgraph()
+args = None
 
 
 def log_time(func):
@@ -58,184 +59,28 @@ def parse_args():
     return parser.parse_args()
 
 
-args = parse_args()
-
-
-class User(Node):
-    name: str = Field(index=True, unique=True, db=memgraph)
-
-
-class Stream(Node, labels={"User", "Stream"}):
-    name: str = Field(index=True, unique=True, db=memgraph, label="User")
-    id: str = Field(index=True, unique=True, db=memgraph)
-    url: str = Field()
-    followers: int = Field()
-    createdAt: str = Field()
-    totalViewCount: int = Field()
-    description: str = Field()
-
-
-class Language(Node):
-    name: str = Field(unique=True, db=memgraph)
-
-
-class Game(Node):
-    name: str = Field(unique=True, db=memgraph)
-
-
-class Team(Node):
-    name: str = Field(unique=True, db=memgraph)
-
-
-class Speaks(Relationship, type="SPEAKS"):
-    pass
-
-
-class Plays(Relationship, type="PLAYS"):
-    pass
-
-
-class IsPartOf(Relationship, type="IS_PART_OF"):
-    pass
-
-
-class Vip(Relationship, type="VIP"):
-    pass
-
-
-class Moderator(Relationship, type="MODERATOR"):
-    pass
-
-
-class Chatter(Relationship, type="CHATTER"):
-    pass
-
-
-def load_streams(path):
-    with open(path) as read_obj:
-        csv_reader = reader(read_obj)
-        header = next(csv_reader)
-        if header != None:
-            for row in csv_reader:
-                stream = Stream(
-                    id=row[1],
-                    name=row[3],
-                    url=row[6],
-                    followers=row[7],
-                    createdAt=row[10],
-                    totalViewCount=row[9],
-                    description=row[8],
-                ).save(memgraph)
-
-                language = Language(name=row[5]).save(memgraph)
-                game = Game(name=row[4]).save(memgraph)
-
-                speaks_rel = Speaks(
-                    _start_node_id=stream._id, _end_node_id=language._id
-                ).save(memgraph)
-
-                plays_rel = Plays(
-                    _start_node_id=stream._id, _end_node_id=game._id
-                ).save(memgraph)
-
-
-def load_teams(path):
-    with open(path) as read_obj:
-        csv_reader = reader(read_obj)
-        header = next(csv_reader)
-        if header != None:
-            for row in csv_reader:
-                stream = next(
-                    Match()
-                    .node("Stream", variable="stream")
-                    .where("stream.id", "=", row[0])
-                    .execute()
-                )["stream"]
-                team = Team(name=row[1]).save(memgraph)
-                is_part_of_rel = IsPartOf(
-                    _start_node_id=stream._id, _end_node_id=team._id
-                ).save(memgraph)
-
-
-def load_vips(path):
-    with open(path) as read_obj:
-        csv_reader = reader(read_obj)
-        header = next(csv_reader)
-        if header != None:
-            for row in csv_reader:
-                stream = next(
-                    Match()
-                    .node("Stream", variable="s")
-                    .where("s.id", "=", row[0])
-                    .execute()
-                )["s"]
-                vip = User(name=row[1]).save(memgraph)
-                vip_rel = Vip(_start_node_id=vip._id, _end_node_id=stream._id).save(
-                    memgraph
-                )
-
-
-def load_moderators(path):
-    with open(path) as read_obj:
-        csv_reader = reader(read_obj)
-        header = next(csv_reader)
-        if header != None:
-            for row in csv_reader:
-                stream = next(
-                    Match()
-                    .node("Stream", variable="s")
-                    .where("s.id", "=", row[0])
-                    .execute()
-                )["s"]
-                moderator = User(name=row[1]).save(memgraph)
-                moderator_rel = Moderator(
-                    _start_node_id=moderator._id, _end_node_id=stream._id
-                ).save(memgraph)
-
-
-def load_chatters(path):
-    with open(path) as read_obj:
-        csv_reader = reader(read_obj)
-        header = next(csv_reader)
-        if header != None:
-            for row in csv_reader:
-                stream = next(
-                    Match()
-                    .node("Stream", variable="s")
-                    .where("s.id", "=", row[0])
-                    .execute()
-                )["s"]
-                chatter = User(name=row[1]).save(memgraph)
-                chatter_rel = Chatter(
-                    _start_node_id=chatter._id, _end_node_id=stream._id
-                ).save(memgraph)
-
-
-@log_time
-def load_twitch_data():
-    path_streams = Path("import-data/streamers.csv")
-    path_teams = Path("import-data/teams.csv")
-    path_vips = Path("import-data/vips.csv")
-    path_moderators = Path("import-data/moderators.csv")
-    path_chatters = Path("import-data/chatters.csv")
-
-    load_streams(path_streams)
-    load_teams(path_teams)
-    load_vips(path_vips)
-    load_moderators(path_moderators)
-    load_chatters(path_chatters)
-
-
 @app.route("/page-rank", methods=["GET"])
 @log_time
 def get_page_rank():
     """Call the Page rank procedure and return top 50 in descending order."""
 
     try:
+        # results = list(
+        #     Call("pagerank.get")
+        #     .yield_()
+        #     .with_({"node": "node", "rank": "rank"})
+        #     .where("node", ":", "Stream")
+        #     .or_where("node", ":", "User")
+        #     .return_({"node.name": "node_name", "rank": "rank"})
+        #     .order_by("rank DESC")
+        #     .limit(50)
+        #     .execute()
+        # )
+
         results = memgraph.execute_and_fetch(
             """CALL pagerank.get()
             YIELD node, rank
-            WITH node, rank
+            WITH node, rankS
             WHERE node:Stream OR node:User
             RETURN node, rank
             ORDER BY rank DESC
@@ -246,7 +91,7 @@ def get_page_rank():
         page_rank_list = list()
 
         for result in results:
-            user_name = result["node"].name
+            user_name = result["node_name"]
             rank = float(result["rank"])
             page_rank_dict = {"name": user_name, "rank": rank}
             dict_copy = page_rank_dict.copy()
@@ -270,6 +115,17 @@ def get_bc():
     """Call the Betweenness centrality procedure and return top 50 in descending order."""
 
     try:
+        # results = list(
+        #     Call("betweenness_centrality.get")
+        #     .yield_()
+        #     .with_({"node": "node", "betweenness_centrality": "betweenness_centrality"})
+        #     .where("node", ":", "Stream")
+        #     .or_where("node", ":", "User")
+        #     .return_({"node.name": "node_name", "betweenness_centrality": "bc"})
+        #     .order_by("bc DESC")
+        #     .limit(50)
+        #     .execute()
+        # )
         results = memgraph.execute_and_fetch(
             """CALL betweenness_centrality.get()
             YIELD node, betweenness_centrality
@@ -284,8 +140,8 @@ def get_bc():
         bc_list = list()
 
         for result in results:
-            user_name = result["node"].name
-            bc = float(result["betweenness_centrality"])
+            user_name = result["node_name"]
+            bc = float(result["bc"])
             bc_dict = {"name": user_name, "betweenness_centrality": bc}
             dict_copy = bc_dict.copy()
             bc_list.append(dict_copy)
@@ -309,18 +165,22 @@ def get_top_streamers_by_views(num_of_streamers):
 
     try:
 
-        results = memgraph.execute_and_fetch(
-            f"""MATCH(u:Stream)
-            RETURN u.name as streamer, u.totalViewCount as total_view_count
-            ORDER BY total_view_count DESC
-            LIMIT {num_of_streamers};"""
+        results = list(
+            Match()
+            .node("Stream", variable="s")
+            .return_(
+                {"s.name": "streamer_name", "s.totalViewCount": "total_view_count"}
+            )
+            .order_by("total_view_count DESC")
+            .limit(num_of_streamers)
+            .execute()
         )
 
         streamers_list = list()
         views_list = list()
 
         for result in results:
-            streamer_name = result["streamer"]
+            streamer_name = result["streamer_name"]
             total_views = result["total_view_count"]
             streamers_list.append(streamer_name)
             views_list.append(total_views)
@@ -344,18 +204,21 @@ def get_top_streamers_by_followers(num_of_streamers):
     """Get top num_of_streamers streamers by total number of followers."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH(u:Stream)
-            RETURN u.name as streamer, u.followers as num_of_followers
-            ORDER BY num_of_followers DESC
-            LIMIT {num_of_streamers};"""
+
+        results = list(
+            Match()
+            .node("Stream", variable="s")
+            .return_({"s.name": "streamer_name", "s.followers": "num_of_followers"})
+            .order_by("num_of_followers DESC")
+            .limit(num_of_streamers)
+            .execute()
         )
 
         streamers_list = list()
         followers_list = list()
 
         for result in results:
-            streamer_name = result["streamer"]
+            streamer_name = result["streamer_name"]
             num_of_followers = result["num_of_followers"]
             streamers_list.append(streamer_name)
             followers_list.append(num_of_followers)
@@ -380,11 +243,16 @@ def get_top_games(num_of_games):
     """Get top num_of_games games by number of streamers who play them."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH (u:User)-[:PLAYS]->(g:Game)
-            RETURN g.name as game_name, COUNT(u) as number_of_players
-            ORDER BY number_of_players DESC
-            LIMIT {num_of_games};"""
+
+        results = list(
+            Match()
+            .node("User", variable="u")
+            .to("PLAYS")
+            .node("Game", variable="g")
+            .return_({"g.name": "game_name", "count(u)": "num_of_players"})
+            .order_by("num_of_players DESC")
+            .limit(num_of_games)
+            .execute()
         )
 
         games_list = list()
@@ -392,7 +260,7 @@ def get_top_games(num_of_games):
 
         for result in results:
             game_name = result["game_name"]
-            num_of_players = result["number_of_players"]
+            num_of_players = result["num_of_players"]
             games_list.append(game_name)
             players_list.append(num_of_players)
 
@@ -416,11 +284,16 @@ def get_top_teams(num_of_teams):
     """Get top num_of_teams teams by number of streamers who are part of them."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH (u:User)-[:IS_PART_OF]->(t:Team)
-            RETURN t.name as team_name, COUNT(u) as number_of_members
-            ORDER BY number_of_members DESC
-            LIMIT {num_of_teams};"""
+
+        results = list(
+            Match()
+            .node("User", variable="u")
+            .to("IS_PART_OF")
+            .node("Team", variable="t")
+            .return_({"t.name": "team_name", "count(u)": "num_of_members"})
+            .order_by("num_of_members DESC")
+            .limit(num_of_teams)
+            .execute()
         )
 
         teams_list = list()
@@ -428,7 +301,7 @@ def get_top_teams(num_of_teams):
 
         for result in results:
             team_name = result["team_name"]
-            num_of_members = result["number_of_members"]
+            num_of_members = result["num_of_members"]
             teams_list.append(team_name)
             members_list.append(num_of_members)
 
@@ -452,11 +325,16 @@ def get_top_vips(num_of_vips):
     """Get top num_of_vips vips by number of streamers who gave them the vip badge."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH (u:User)<-[:VIP]-(v:User)
-            RETURN v.name as vip_name, COUNT(u) as number_of_streamers
-            ORDER BY number_of_streamers DESC
-            LIMIT {num_of_vips};"""
+
+        results = list(
+            Match()
+            .node("User", variable="u")
+            .from_("VIP")
+            .node("User", variable="v")
+            .return_({"v.name": "vip_name", "count(u)": "num_of_streamers"})
+            .order_by("num_of_streamers DESC")
+            .limit(num_of_vips)
+            .execute()
         )
 
         vips_list = list()
@@ -464,7 +342,7 @@ def get_top_vips(num_of_vips):
 
         for result in results:
             vip_name = result["vip_name"]
-            num_of_streamers = result["number_of_streamers"]
+            num_of_streamers = result["num_of_streamers"]
             vips_list.append(vip_name)
             streamers_list.append(num_of_streamers)
 
@@ -487,11 +365,16 @@ def get_top_moderators(num_of_moderators):
     """Get top num_of_moderators moderators by number of streamers who gave them the moderator badge."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH (u:User)<-[:MODERATOR]-(m:User)
-            RETURN m.name as moderator_name, COUNT(u) as number_of_streamers
-            ORDER BY number_of_streamers DESC
-            LIMIT {num_of_moderators};"""
+
+        results = list(
+            Match()
+            .node("User", variable="u")
+            .from_("MODERATOR")
+            .node("User", variable="m")
+            .return_({"m.name": "moderator_name", "count(u)": "num_of_streamers"})
+            .order_by("num_of_streamers DESC")
+            .limit(num_of_moderators)
+            .execute()
         )
 
         moderators_list = list()
@@ -499,7 +382,7 @@ def get_top_moderators(num_of_moderators):
 
         for result in results:
             moderator_name = result["moderator_name"]
-            num_of_streamers = result["number_of_streamers"]
+            num_of_streamers = result["num_of_streamers"]
             moderators_list.append(moderator_name)
             streamers_list.append(num_of_streamers)
 
@@ -521,11 +404,13 @@ def get_top_moderators(num_of_moderators):
 def get_streamer(streamer_name):
     """Get info about streamer whose name is streamer_name."""
     try:
-        counter = len(
-            list(
-                Match().node("User", "u").where("u.name", "=", streamer_name).execute()
-            )
-        )
+        counter = next(
+            Match()
+            .node("User", "u")
+            .where("u.name", "=", streamer_name)
+            .return_({"count(u)": "num_of_streamers"})
+            .execute()
+        )["num_of_streamers"]
 
         # If the streamer exists, return its relationships
         if counter != 0:
@@ -536,6 +421,14 @@ def get_streamer(streamer_name):
                 .to()
                 .node(variable="n")
                 .where("u.name", "=", streamer_name)
+                .return_(
+                    {
+                        "u.id": "streamer_id",
+                        "u.name": "streamer_name",
+                        "n.name": "node_name",
+                        "labels(n)": "labels",
+                    }
+                )
                 .execute()
             )
 
@@ -543,15 +436,13 @@ def get_streamer(streamer_name):
             nodes_set = set()
 
             for result in results:
-                source_id = result["u"].id
-                source_name = result["u"].name
+                source_id = result["streamer_id"]
+                source_name = result["streamer_name"]
                 source_label = "Stream"
 
-                target_id = result["n"].name
-                target_name = result["n"].name
-                target_label = list(result["n"]._labels)[0]
-
-                log.info(target_label)
+                target_id = result["node_name"]
+                target_name = result["node_name"]
+                target_label = result["labels"][0]
 
                 nodes_set.add((source_id, source_label, source_name))
                 nodes_set.add((target_id, target_label, target_name))
@@ -599,6 +490,14 @@ def get_streamers(language, game):
             .to("PLAYS")
             .node("Game", variable="g")
             .where("g.name", "=", game)
+            .return_(
+                {
+                    "s.id": "streamer_id",
+                    "s.name": "streamer_name",
+                    "g.name": "game_name",
+                    "l.name": "language_name",
+                }
+            )
             .execute()
         )
 
@@ -606,17 +505,17 @@ def get_streamers(language, game):
         links_set = set()
 
         for result in results:
-            streamer_id = result["s"].id
-            streamer_name = result["s"].name
+            streamer_id = result["streamer_id"]
+            streamer_name = result["streamer_name"]
             streamer_label = "Stream"
 
-            game_id = result["g"].name
-            game_name = result["g"].name
+            game_id = result["game_name"]
+            game_name = result["game_name"]
             game_label = "Game"
 
-            language_id = result["l"].name
-            language_name = result["l"].name
-            language_label = result["l"]._label
+            language_id = result["language_name"]
+            language_name = result["language_name"]
+            language_label = "Language"
 
             nodes_set.add((streamer_id, streamer_name, streamer_label))
             nodes_set.add((game_id, game_name, game_label))
@@ -656,13 +555,20 @@ def get_streamers(language, game):
 def get_all_streamers_names():
     """Get the names of all streamers."""
     try:
-        results = list(Match().node("Stream", variable="stream").execute())
+        results = list(
+            Match()
+            .node("Stream", variable="stream")
+            .return_(
+                {"stream.name": "streamer_name", "stream.totalViewCount": "view_count"}
+            )
+            .execute()
+        )
 
         streamers_list = list()
 
         for result in results:
-            streamer_name = result["stream"].name
-            view_count = result["stream"].totalViewCount
+            streamer_name = result["streamer_name"]
+            view_count = result["view_count"]
             streamer = {
                 "title": streamer_name,
                 "description": "streamer",
@@ -687,14 +593,18 @@ def get_all_streamers_names():
 def get_all_games_names():
     """Get the names of all games."""
     try:
-        results = list(Match().node("Game", variable="game").execute())
+        results = list(
+            Match()
+            .node("Game", variable="game")
+            .return_({"game.name": "name"})
+            .execute()
+        )
 
         games_list = list()
 
         for result in results:
-            game_name = result["game"].name
             game = {
-                "title": game_name,
+                "title": result["name"],
                 "description": "game",
                 "image": "image",
                 "price": "0",
@@ -709,6 +619,7 @@ def get_all_games_names():
     except Exception as e:
         log.info("Fetching top teams went wrong.")
         log.info(e)
+        traceback.print_exc()
         return ("", 500)
 
 
@@ -717,13 +628,17 @@ def get_all_games_names():
 def get_all_languages_names():
     """Get the names of all languages."""
     try:
-        results = list(Match().node("Language", variable="lang").execute())
+        results = list(
+            Match()
+            .node("Language", variable="lang")
+            .return_({"lang.name": "name"})
+            .execute()
+        )
         languages_list = list()
 
         for result in results:
-            language_name = result["lang"].name
             language = {
-                "title": language_name,
+                "title": result["name"],
                 "description": "language",
                 "image": "image",
                 "price": "0",
@@ -746,7 +661,12 @@ def get_all_languages_names():
 def get_nodes():
     """Get the number of nodes in database."""
     try:
-        num_of_nodes = len(list(Match().node(variable="node").execute()))
+        num_of_nodes = next(
+            Match()
+            .node(variable="node")
+            .return_({"count(node)": "num_of_nodes"})
+            .execute()
+        )["num_of_nodes"]
 
         response = {"nodes": num_of_nodes}
         return Response(
@@ -764,7 +684,14 @@ def get_nodes():
 def get_edges():
     """Get the number of edges in database."""
     try:
-        num_of_edges = len(list(Match().node().to(variable="r").node().execute()))
+        num_of_edges = next(
+            Match()
+            .node()
+            .to(variable="r")
+            .node()
+            .return_({"count(r)": "num_of_edges"})
+            .execute()
+        )["num_of_edges"]
 
         response = {"edges": num_of_edges}
         return Response(
@@ -787,7 +714,7 @@ def load_data():
     log.info("Loading data into Memgraph.")
     try:
         memgraph.drop_database()
-        load_twitch_data()
+        twitch_data.load()
     except Exception as e:
         log.info("Data loading error.")
 
@@ -809,9 +736,11 @@ def connect_to_memgraph():
 
 
 def main():
+    global args
+    args = parse_args()
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        connect_to_memgraph()
         init_log()
+        connect_to_memgraph()
         load_data()
     app.run(host=args.host, port=args.port, debug=args.debug)
 

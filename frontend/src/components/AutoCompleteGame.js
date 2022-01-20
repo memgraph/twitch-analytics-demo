@@ -141,55 +141,59 @@ function AutoCompleteGame(props) {
     };
   }, []);
 
-  return (
-    <Grid>
-      <Grid.Row>
-        <Grid.Column width={6}>
-          <Search
-            loading={loading}
-            onResultSelect={(e, data) =>
-              dispatch({
-                type: "UPDATE_SELECTION",
-                selection: data.result.title,
-              })
-            }
-            onSearchChange={handleSearchChange}
-            resultRenderer={resultRenderer}
-            results={results}
-            value={value}
-          />
-        </Grid.Column>
-        <Grid.Column width={3}>
-          <Label pointing="left">Pick a game</Label>
-        </Grid.Column>
-      </Grid.Row>
-      <Grid.Row>
-        <Grid.Column width={6}>
-          <Search
-            loading={loadingLang}
-            onResultSelect={(e, data) =>
-              dispatchLanguage({
-                type: "UPDATE_SELECTION",
-                selection: data.result.title,
-              })
-            }
-            onSearchChange={handleSearchChangeL}
-            resultRenderer={resultRendererL}
-            results={resultsLang}
-            value={valueLang}
-          />
-        </Grid.Column>
-        <Grid.Column width={3}>
-          <Label pointing="left">Pick a language</Label>
-        </Grid.Column>
-      </Grid.Row>
-      <Grid.Row>
-        <Grid.Column width={10} centered>
-          <Button onClick={handleClick} content="Get graph" />
-        </Grid.Column>
-      </Grid.Row>
-    </Grid>
-  );
+  if (hasError) {
+    return <div>Error: {hasError.message}</div>;
+  } else {
+    return (
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={6}>
+            <Search
+              loading={loading}
+              onResultSelect={(e, data) =>
+                dispatch({
+                  type: "UPDATE_SELECTION",
+                  selection: data.result.title,
+                })
+              }
+              onSearchChange={handleSearchChange}
+              resultRenderer={resultRenderer}
+              results={results}
+              value={value}
+            />
+          </Grid.Column>
+          <Grid.Column width={3}>
+            <Label pointing="left">Pick a game</Label>
+          </Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={6}>
+            <Search
+              loading={loadingLang}
+              onResultSelect={(e, data) =>
+                dispatchLanguage({
+                  type: "UPDATE_SELECTION",
+                  selection: data.result.title,
+                })
+              }
+              onSearchChange={handleSearchChangeL}
+              resultRenderer={resultRendererL}
+              results={resultsLang}
+              value={valueLang}
+            />
+          </Grid.Column>
+          <Grid.Column width={3}>
+            <Label pointing="left">Pick a language</Label>
+          </Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column width={10} centered>
+            <Button onClick={handleClick} content="Get graph" />
+          </Grid.Column>
+        </Grid.Row>
+      </Grid>
+    );
+  }
 }
 
 export default AutoCompleteGame;

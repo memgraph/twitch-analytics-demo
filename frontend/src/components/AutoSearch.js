@@ -79,28 +79,32 @@ function AutoSearch(props) {
     };
   }, []);
 
-  return (
-    <Grid>
-      <Grid.Column width={7}>
-        <Search
-          loading={loading}
-          onResultSelect={(e, data) =>
-            dispatch({
-              type: "UPDATE_SELECTION",
-              selection: data.result.title,
-            })
-          }
-          onSearchChange={handleSearchChange}
-          resultRenderer={resultRenderer}
-          results={results}
-          value={value}
-        />
-      </Grid.Column>
-      <Grid.Column width={4}>
-        <Button onClick={handleClick} content="Get graph" />
-      </Grid.Column>
-    </Grid>
-  );
+  if (hasError) {
+    return <div>Error: {hasError.message}</div>;
+  } else {
+    return (
+      <Grid>
+        <Grid.Column width={7}>
+          <Search
+            loading={loading}
+            onResultSelect={(e, data) =>
+              dispatch({
+                type: "UPDATE_SELECTION",
+                selection: data.result.title,
+              })
+            }
+            onSearchChange={handleSearchChange}
+            resultRenderer={resultRenderer}
+            results={results}
+            value={value}
+          />
+        </Grid.Column>
+        <Grid.Column width={4}>
+          <Button onClick={handleClick} content="Get graph" />
+        </Grid.Column>
+      </Grid>
+    );
+  }
 }
 
 export default AutoSearch;

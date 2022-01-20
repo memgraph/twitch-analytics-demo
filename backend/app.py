@@ -415,22 +415,23 @@ def get_streamer(streamer_name):
             nodes_set = set()
 
             for result in results:
-                source_id = result["streamer_id"]
-                source_name = result["streamer_name"]
-                source_label = "Stream"
+                if result["labels"][0] != "Stream" and result["labels"][0] != "User":
+                    source_id = result["streamer_id"]
+                    source_name = result["streamer_name"]
+                    source_label = "Stream"
 
-                target_id = result["node_name"]
-                target_name = result["node_name"]
-                target_label = result["labels"][0]
+                    target_id = result["node_name"]
+                    target_name = result["node_name"]
+                    target_label = result["labels"][0]
 
-                nodes_set.add((source_id, source_label, source_name))
-                nodes_set.add((target_id, target_label, target_name))
+                    nodes_set.add((source_id, source_label, source_name))
+                    nodes_set.add((target_id, target_label, target_name))
 
-                if (source_id, target_id) not in links_set and (
-                    target_id,
-                    source_id,
-                ) not in links_set:
-                    links_set.add((source_id, target_id))
+                    if (source_id, target_id) not in links_set and (
+                        target_id,
+                        source_id,
+                    ) not in links_set:
+                        links_set.add((source_id, target_id))
 
             nodes = [
                 {"id": node_id, "label": node_label, "name": node_name}
@@ -537,9 +538,7 @@ def get_all_streamers_names():
         results = list(
             Match()
             .node("Stream", variable="stream")
-            .return_(
-                {"stream.name": "streamer_name", "stream.totalViewCount": "view_count"}
-            )
+            .return_({"stream.name": "streamer_name"})
             .execute()
         )
 
@@ -547,12 +546,8 @@ def get_all_streamers_names():
 
         for result in results:
             streamer_name = result["streamer_name"]
-            view_count = result["view_count"]
             streamer = {
                 "title": streamer_name,
-                "description": "streamer",
-                "image": "image",
-                "price": str(view_count),
             }
             streamers_list.append(streamer)
 
@@ -582,12 +577,7 @@ def get_all_games_names():
         games_list = list()
 
         for result in results:
-            game = {
-                "title": result["name"],
-                "description": "game",
-                "image": "image",
-                "price": "0",
-            }
+            game = {"title": result["name"]}
             games_list.append(game)
 
         response = {"games": games_list}
@@ -616,12 +606,7 @@ def get_all_languages_names():
         languages_list = list()
 
         for result in results:
-            language = {
-                "title": result["name"],
-                "description": "language",
-                "image": "image",
-                "price": "0",
-            }
+            language = {"title": result["name"]}
             languages_list.append(language)
 
         response = {"languages": languages_list}

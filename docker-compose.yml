@@ -39,10 +39,7 @@ services:
     entrypoint:
       [
         "/usr/lib/memgraph/memgraph",
-        "--telemetry-enabled=false",
-        "--kafka-bootstrap-servers=kafka:9092",
-        "--query-modules-directory=/usr/lib/memgraph/query_modules",
-        "--log-level=TRACE"
+        "--telemetry-enabled=false"
       ]
     ports:
       - "7687:7687"

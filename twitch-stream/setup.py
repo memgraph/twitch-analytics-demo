@@ -52,10 +52,10 @@ def run(memgraph, kafka_ip, kafka_port):
     log.info("Created topics")
 
     log.info("Creating stream connections on Memgraph")
-    # stream = MemgraphKafkaStream(name="chatter_stream", topics=["chatters"], transform="twitch.chatters")
+    # stream = MemgraphKafkaStream(name="chatter_stream", topics=["chatters"], transform="twitch.chatters", bootstrap_servers="kafka:9092")
     # memgraph.create_stream(stream)
     # TODO: memgraph.start_stream(stream) -> START STREAM chatter_stream
     memgraph.execute(
-        "CREATE KAFKA STREAM chatter_stream TOPICS chatters TRANSFORM twitch.chatters"
+        "CREATE KAFKA STREAM chatter_stream TOPICS chatters TRANSFORM twitch.chatters BOOTSTRAP_SERVERS 'kafka:9092'"
     )
     memgraph.execute("START STREAM chatter_stream")

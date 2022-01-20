@@ -1,3 +1,4 @@
+from typing import Optional
 from app import memgraph
 from gqlalchemy import Node, Field, Relationship
 
@@ -6,15 +7,14 @@ class User(Node):
     name: str = Field(index=True, unique=True, db=memgraph)
 
 
-# TODO: stream = Stream(id=row[0]).load(db=memgraph) should work without default="" in other properties
-class Stream(Node, labels={"User", "Stream"}):
-    name: str = Field(index=True, unique=True, db=memgraph, label="User", default="")
+class Stream(User):
+    name: Optional[str] = Field(index=True, unique=True, db=memgraph, label="User")
     id: str = Field(index=True, unique=True, db=memgraph)
-    url: str = Field(default="")
-    followers: int = Field(default="")
-    createdAt: str = Field(default="")
-    totalViewCount: int = Field(default="")
-    description: str = Field(default="")
+    url: Optional[str] = Field()
+    followers: Optional[int] = Field()
+    createdAt: Optional[str] = Field()
+    totalViewCount: Optional[int] = Field()
+    description: Optional[str] = Field()
 
 
 class Language(Node):

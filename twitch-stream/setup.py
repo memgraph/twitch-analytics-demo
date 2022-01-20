@@ -1,5 +1,7 @@
 import logging
-from gqlalchemy import Memgraph, MemgraphKafkaStream
+from gqlalchemy import Memgraph
+
+# , MemgraphKafkaStream
 from kafka.admin import KafkaAdminClient, NewTopic
 from kafka.errors import TopicAlreadyExistsError, NoBrokersAvailable
 from time import sleep

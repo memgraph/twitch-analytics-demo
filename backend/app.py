@@ -65,26 +65,15 @@ def get_page_rank():
     """Call the Page rank procedure and return top 50 in descending order."""
 
     try:
-        # results = list(
-        #     Call("pagerank.get")
-        #     .yield_()
-        #     .with_({"node": "node", "rank": "rank"})
-        #     .where("node", ":", "Stream")
-        #     .or_where("node", ":", "User")
-        #     .return_({"node.name": "node_name", "rank": "rank"})
-        #     .order_by("rank DESC")
-        #     .limit(50)
-        #     .execute()
-        # )
-
-        results = memgraph.execute_and_fetch(
-            """CALL pagerank.get()
-            YIELD node, rank
-            WITH node, rankS
-            WHERE node:Stream OR node:User
-            RETURN node, rank
-            ORDER BY rank DESC
-            LIMIT 50; """
+        results = list(
+            Call("pagerank.get")
+            .yield_()
+            .with_({"node": "node", "rank": "rank"})
+            .add_custom_cypher("WHERE node:Stream OR node:User")
+            .return_({"node.name": "node_name", "rank": "rank"})
+            .order_by("rank DESC")
+            .limit(50)
+            .execute()
         )
 
         page_rank_dict = dict()
@@ -115,25 +104,15 @@ def get_bc():
     """Call the Betweenness centrality procedure and return top 50 in descending order."""
 
     try:
-        # results = list(
-        #     Call("betweenness_centrality.get")
-        #     .yield_()
-        #     .with_({"node": "node", "betweenness_centrality": "betweenness_centrality"})
-        #     .where("node", ":", "Stream")
-        #     .or_where("node", ":", "User")
-        #     .return_({"node.name": "node_name", "betweenness_centrality": "bc"})
-        #     .order_by("bc DESC")
-        #     .limit(50)
-        #     .execute()
-        # )
-        results = memgraph.execute_and_fetch(
-            """CALL betweenness_centrality.get()
-            YIELD node, betweenness_centrality
-            WITH node, betweenness_centrality
-            WHERE node:Stream OR node:User
-            RETURN node, betweenness_centrality
-            ORDER BY betweenness_centrality DESC
-            LIMIT 50;"""
+        results = list(
+            Call("betweenness_centrality.get")
+            .yield_()
+            .with_({"node": "node", "betweenness_centrality": "betweenness_centrality"})
+            .add_custom_cypher("WHERE node:Stream OR node:User")
+            .return_({"node.name": "node_name", "betweenness_centrality": "bc"})
+            .order_by("bc DESC")
+            .limit(50)
+            .execute()
         )
 
         bc_dict = dict()

@@ -1,7 +1,5 @@
 import logging
-from gqlalchemy import Memgraph
-
-# , MemgraphKafkaStream
+from gqlalchemy import Memgraph, MemgraphKafkaStream
 from kafka.admin import KafkaAdminClient, NewTopic
 from kafka.errors import TopicAlreadyExistsError, NoBrokersAvailable
 from time import sleep
@@ -52,10 +50,11 @@ def run(memgraph, kafka_ip, kafka_port):
     log.info("Created topics")
 
     log.info("Creating stream connections on Memgraph")
-    # stream = MemgraphKafkaStream(name="chatter_stream", topics=["chatters"], transform="twitch.chatters", bootstrap_servers="kafka:9092")
-    # memgraph.create_stream(stream)
-    # TODO: memgraph.start_stream(stream) -> START STREAM chatter_stream
-    memgraph.execute(
-        "CREATE KAFKA STREAM chatter_stream TOPICS chatters TRANSFORM twitch.chatters BOOTSTRAP_SERVERS 'kafka:9092'"
+    stream = MemgraphKafkaStream(
+        name="chatter_stream",
+        topics=["chatters"],
+        transform="twitch.chatters",
+        bootstrap_servers="'kafka:9092'",
     )
-    memgraph.execute("START STREAM chatter_stream")
+    memgraph.create_stream(stream)
+    memgraph.start_stream(stream)

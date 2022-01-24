@@ -1,16 +1,33 @@
-import logging
-import os
 from argparse import ArgumentParser
 from flask import Flask, Response, render_template
-from gqlalchemy import Memgraph
+from gqlalchemy import Memgraph, Match, Call
 from json import dumps
-from database import connect_to_memgraph, load_twitch_data, log_time
+import logging
+import os
+import time
+from functools import wraps
+import traceback
+import twitch_data
+
+memgraph = Memgraph()
 
 log = logging.getLogger(__name__)
 app = Flask(
     __name__,
 )
-memgraph = Memgraph()
+args = None
+
+
+def log_time(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        duration = time.time() - start_time
+        log.info(f"Time for {func.__name__} is {duration}")
+        return result
+
+    return wrapper
 
 
 def init_log():
@@ -35,14 +52,11 @@ def parse_args():
         "--populate",
         dest="populate",
         action="store_true",
-        help="Run app with data loading."
+        help="Run app with data loading.",
     )
     parser.set_defaults(populate=False)
     log.info(__doc__)
     return parser.parse_args()
-
-
-args = parse_args()
 
 
 @app.route("/page-rank", methods=["GET"])
@@ -51,21 +65,22 @@ def get_page_rank():
     """Call the Page rank procedure and return top 50 in descending order."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            """CALL pagerank.get()
-            YIELD node, rank
-            WITH node, rank
-            WHERE node:Stream OR node:User
-            RETURN node, rank
-            ORDER BY rank DESC
-            LIMIT 50; """
+        results = list(
+            Call("pagerank.get")
+            .yield_()
+            .with_({"node": "node", "rank": "rank"})
+            .add_custom_cypher("WHERE node:Stream OR node:User")
+            .return_({"node.name": "node_name", "rank": "rank"})
+            .order_by("rank DESC")
+            .limit(50)
+            .execute()
         )
 
         page_rank_dict = dict()
         page_rank_list = list()
 
         for result in results:
-            user_name = result["node"].properties["name"]
+            user_name = result["node_name"]
             rank = float(result["rank"])
             page_rank_dict = {"name": user_name, "rank": rank}
             dict_copy = page_rank_dict.copy()
@@ -73,7 +88,9 @@ def get_page_rank():
 
         response = {"page_rank": page_rank_list}
 
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching users' ranks using pagerank went wrong.")
@@ -87,29 +104,32 @@ def get_bc():
     """Call the Betweenness centrality procedure and return top 50 in descending order."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            """CALL betweenness_centrality.get()
-            YIELD node, betweenness_centrality
-            WITH node, betweenness_centrality
-            WHERE node:Stream OR node:User
-            RETURN node, betweenness_centrality
-            ORDER BY betweenness_centrality DESC
-            LIMIT 50;"""
+        results = list(
+            Call("betweenness_centrality.get")
+            .yield_()
+            .with_({"node": "node", "betweenness_centrality": "betweenness_centrality"})
+            .add_custom_cypher("WHERE node:Stream OR node:User")
+            .return_({"node.name": "node_name", "betweenness_centrality": "bc"})
+            .order_by("bc DESC")
+            .limit(50)
+            .execute()
         )
 
         bc_dict = dict()
         bc_list = list()
 
         for result in results:
-            user_name = result["node"].properties["name"]
-            bc = float(result["betweenness_centrality"])
+            user_name = result["node_name"]
+            bc = float(result["bc"])
             bc_dict = {"name": user_name, "betweenness_centrality": bc}
             dict_copy = bc_dict.copy()
             bc_list.append(dict_copy)
 
         response = {"bc": bc_list}
 
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching betweenness centrality went wrong.")
@@ -123,32 +143,33 @@ def get_top_streamers_by_views(num_of_streamers):
     """Get top num_of_streamers streamers by total number of views."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH(u:Stream)
-            RETURN u.name as streamer, u.totalViewCount as total_view_count
-            ORDER BY total_view_count DESC
-            LIMIT {num_of_streamers};"""
+
+        results = list(
+            Match()
+            .node("Stream", variable="s")
+            .return_(
+                {"s.name": "streamer_name", "s.totalViewCount": "total_view_count"}
+            )
+            .order_by("total_view_count DESC")
+            .limit(num_of_streamers)
+            .execute()
         )
 
         streamers_list = list()
         views_list = list()
 
         for result in results:
-            streamer_name = result['streamer']
-            total_views = result['total_view_count']
+            streamer_name = result["streamer_name"]
+            total_views = result["total_view_count"]
             streamers_list.append(streamer_name)
             views_list.append(total_views)
 
-        streamers = [
-            {"name": streamer_name}
-            for streamer_name in streamers_list
-        ]
-        views = [
-            {"views": view_count}
-            for view_count in views_list
-        ]
+        streamers = [{"name": streamer_name} for streamer_name in streamers_list]
+        views = [{"views": view_count} for view_count in views_list]
         response = {"streamers": streamers, "views": views}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top streamers by views went wrong.")
@@ -162,33 +183,32 @@ def get_top_streamers_by_followers(num_of_streamers):
     """Get top num_of_streamers streamers by total number of followers."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH(u:Stream)
-            RETURN u.name as streamer, u.followers as num_of_followers
-            ORDER BY num_of_followers DESC
-            LIMIT {num_of_streamers};"""
+
+        results = list(
+            Match()
+            .node("Stream", variable="s")
+            .return_({"s.name": "streamer_name", "s.followers": "num_of_followers"})
+            .order_by("num_of_followers DESC")
+            .limit(num_of_streamers)
+            .execute()
         )
 
         streamers_list = list()
         followers_list = list()
 
         for result in results:
-            streamer_name = result['streamer']
-            num_of_followers = result['num_of_followers']
+            streamer_name = result["streamer_name"]
+            num_of_followers = result["num_of_followers"]
             streamers_list.append(streamer_name)
             followers_list.append(num_of_followers)
 
-        streamers = [
-            {"name": streamer_name}
-            for streamer_name in streamers_list
-        ]
-        followers = [
-            {"followers": follower_count}
-            for follower_count in followers_list
-        ]
+        streamers = [{"name": streamer_name} for streamer_name in streamers_list]
+        followers = [{"followers": follower_count} for follower_count in followers_list]
 
         response = {"streamers": streamers, "followers": followers}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top streamers by followers went wrong.")
@@ -202,33 +222,34 @@ def get_top_games(num_of_games):
     """Get top num_of_games games by number of streamers who play them."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH (u:User)-[:PLAYS]->(g:Game)
-            RETURN g.name as game_name, COUNT(u) as number_of_players
-            ORDER BY number_of_players DESC
-            LIMIT {num_of_games};"""
+
+        results = list(
+            Match()
+            .node("User", variable="u")
+            .to("PLAYS")
+            .node("Game", variable="g")
+            .return_({"g.name": "game_name", "count(u)": "num_of_players"})
+            .order_by("num_of_players DESC")
+            .limit(num_of_games)
+            .execute()
         )
 
         games_list = list()
         players_list = list()
 
         for result in results:
-            game_name = result['game_name']
-            num_of_players = result['number_of_players']
+            game_name = result["game_name"]
+            num_of_players = result["num_of_players"]
             games_list.append(game_name)
             players_list.append(num_of_players)
 
-        games = [
-            {"name": game_name}
-            for game_name in games_list
-        ]
-        players = [
-            {"players": player_count}
-            for player_count in players_list
-        ]
+        games = [{"name": game_name} for game_name in games_list]
+        players = [{"players": player_count} for player_count in players_list]
 
         response = {"games": games, "players": players}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top games went wrong.")
@@ -242,33 +263,34 @@ def get_top_teams(num_of_teams):
     """Get top num_of_teams teams by number of streamers who are part of them."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH (u:User)-[:IS_PART_OF]->(t:Team)
-            RETURN t.name as team_name, COUNT(u) as number_of_members
-            ORDER BY number_of_members DESC
-            LIMIT {num_of_teams};"""
+
+        results = list(
+            Match()
+            .node("User", variable="u")
+            .to("IS_PART_OF")
+            .node("Team", variable="t")
+            .return_({"t.name": "team_name", "count(u)": "num_of_members"})
+            .order_by("num_of_members DESC")
+            .limit(num_of_teams)
+            .execute()
         )
 
         teams_list = list()
         members_list = list()
 
         for result in results:
-            team_name = result['team_name']
-            num_of_members = result['number_of_members']
+            team_name = result["team_name"]
+            num_of_members = result["num_of_members"]
             teams_list.append(team_name)
             members_list.append(num_of_members)
 
-        teams = [
-            {"name": team_name}
-            for team_name in teams_list
-        ]
-        members = [
-            {"members": member_count}
-            for member_count in members_list
-        ]
+        teams = [{"name": team_name} for team_name in teams_list]
+        members = [{"members": member_count} for member_count in members_list]
 
         response = {"teams": teams, "members": members}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
@@ -282,32 +304,33 @@ def get_top_vips(num_of_vips):
     """Get top num_of_vips vips by number of streamers who gave them the vip badge."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH (u:User)<-[:VIP]-(v:User)
-            RETURN v.name as vip_name, COUNT(u) as number_of_streamers
-            ORDER BY number_of_streamers DESC
-            LIMIT {num_of_vips};"""
+
+        results = list(
+            Match()
+            .node("User", variable="u")
+            .from_("VIP")
+            .node("User", variable="v")
+            .return_({"v.name": "vip_name", "count(u)": "num_of_streamers"})
+            .order_by("num_of_streamers DESC")
+            .limit(num_of_vips)
+            .execute()
         )
 
         vips_list = list()
         streamers_list = list()
 
         for result in results:
-            vip_name = result['vip_name']
-            num_of_streamers = result['number_of_streamers']
+            vip_name = result["vip_name"]
+            num_of_streamers = result["num_of_streamers"]
             vips_list.append(vip_name)
             streamers_list.append(num_of_streamers)
 
-        vips = [
-            {"name": vip_name}
-            for vip_name in vips_list
-        ]
-        streamers = [
-            {"streamers": streamer_count}
-            for streamer_count in streamers_list
-        ]
+        vips = [{"name": vip_name} for vip_name in vips_list]
+        streamers = [{"streamers": streamer_count} for streamer_count in streamers_list]
         response = {"vips": vips, "streamers": streamers}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top vips went wrong.")
@@ -321,32 +344,33 @@ def get_top_moderators(num_of_moderators):
     """Get top num_of_moderators moderators by number of streamers who gave them the moderator badge."""
 
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH (u:User)<-[:MODERATOR]-(m:User)
-            RETURN m.name as moderator_name, COUNT(u) as number_of_streamers
-            ORDER BY number_of_streamers DESC
-            LIMIT {num_of_moderators};"""
+
+        results = list(
+            Match()
+            .node("User", variable="u")
+            .from_("MODERATOR")
+            .node("User", variable="m")
+            .return_({"m.name": "moderator_name", "count(u)": "num_of_streamers"})
+            .order_by("num_of_streamers DESC")
+            .limit(num_of_moderators)
+            .execute()
         )
 
         moderators_list = list()
         streamers_list = list()
 
         for result in results:
-            moderator_name = result['moderator_name']
-            num_of_streamers = result['number_of_streamers']
+            moderator_name = result["moderator_name"]
+            num_of_streamers = result["num_of_streamers"]
             moderators_list.append(moderator_name)
             streamers_list.append(num_of_streamers)
 
-        moderators = [
-            {"name": moderator_name}
-            for moderator_name in moderators_list
-        ]
-        streamers = [
-            {"streamers": streamer_count}
-            for streamer_count in streamers_list
-        ]
+        moderators = [{"name": moderator_name} for moderator_name in moderators_list]
+        streamers = [{"streamers": streamer_count} for streamer_count in streamers_list]
         response = {"moderators": moderators, "streamers": streamers}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top moderators went wrong.")
@@ -358,59 +382,71 @@ def get_top_moderators(num_of_moderators):
 @log_time
 def get_streamer(streamer_name):
     """Get info about streamer whose name is streamer_name."""
-    is_streamer = True
     try:
-        # Check whether streamer with the given name exists
-        counters = memgraph.execute_and_fetch(
-            f"""MATCH (u:User {{name:"{streamer_name}"}})
-            RETURN COUNT(u) AS name_counter;"""
-        )
-
-        for counter in counters:
-            if(counter['name_counter'] == 0):
-                is_streamer = False
+        counter = next(
+            Match()
+            .node("User", "u")
+            .where("u.name", "=", streamer_name)
+            .return_({"count(u)": "num_of_streamers"})
+            .execute()
+        )["num_of_streamers"]
 
         # If the streamer exists, return its relationships
-        if(is_streamer):
-            results = memgraph.execute_and_fetch(
-                """MATCH (u:User {name:'""" + str(streamer_name) + """'})-[]->(n)
-                RETURN u,n;"""
+        if counter != 0:
+
+            results = list(
+                Match()
+                .node("User", variable="u")
+                .to()
+                .node(variable="n")
+                .where("u.name", "=", streamer_name)
+                .return_(
+                    {
+                        "u.id": "streamer_id",
+                        "u.name": "streamer_name",
+                        "n.name": "node_name",
+                        "labels(n)": "labels",
+                    }
+                )
+                .execute()
             )
 
             links_set = set()
             nodes_set = set()
 
             for result in results:
-                source_id = result['u'].properties['id']
-                source_name = result['u'].properties['name']
-                source_label = 'Stream'
+                if result["labels"][0] != "Stream" and result["labels"][0] != "User":
+                    source_id = result["streamer_id"]
+                    source_name = result["streamer_name"]
+                    source_label = "Stream"
 
-                target_id = result['n'].properties['name']
-                target_name = result['n'].properties['name']
-                target_label = list(result['n'].labels)[0]
+                    target_id = result["node_name"]
+                    target_name = result["node_name"]
+                    target_label = result["labels"][0]
 
-                nodes_set.add((source_id, source_label, source_name))
-                nodes_set.add((target_id, target_label, target_name))
+                    nodes_set.add((source_id, source_label, source_name))
+                    nodes_set.add((target_id, target_label, target_name))
 
-                if (source_id, target_id) not in links_set and (
-                    target_id,
-                    source_id,
-                ) not in links_set:
-                    links_set.add((source_id, target_id))
+                    if (source_id, target_id) not in links_set and (
+                        target_id,
+                        source_id,
+                    ) not in links_set:
+                        links_set.add((source_id, target_id))
 
             nodes = [
                 {"id": node_id, "label": node_label, "name": node_name}
                 for node_id, node_label, node_name in nodes_set
             ]
-            links = [{"source": n_id, "target": m_id}
-                     for (n_id, m_id) in links_set]
+            links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
         # If the streamer doesn't exist, return empty response
         else:
             nodes = []
             links = []
 
         response = {"nodes": nodes, "links": links}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching streamer by name went wrong.")
@@ -423,27 +459,43 @@ def get_streamer(streamer_name):
 def get_streamers(language, game):
     """Get all streamers who stream certain game in certain language."""
     try:
-        results = memgraph.execute_and_fetch(
-            f"""MATCH(s:Stream)-[:SPEAKS]->(l:Language {{name: "{language}"}})
-            MATCH (s)-[:PLAYS]->(g:Game {{name:"{game}"}})
-            RETURN s,g,l;"""
+        results = list(
+            Match()
+            .node("Stream", variable="s")
+            .to("SPEAKS")
+            .node("Language", variable="l")
+            .where("l.name", "=", language)
+            .match()
+            .node(variable="s")
+            .to("PLAYS")
+            .node("Game", variable="g")
+            .where("g.name", "=", game)
+            .return_(
+                {
+                    "s.id": "streamer_id",
+                    "s.name": "streamer_name",
+                    "g.name": "game_name",
+                    "l.name": "language_name",
+                }
+            )
+            .execute()
         )
 
         nodes_set = set()
         links_set = set()
 
         for result in results:
-            streamer_id = result['s'].properties['id']
-            streamer_name = result['s'].properties['name']
-            streamer_label = 'Stream'
+            streamer_id = result["streamer_id"]
+            streamer_name = result["streamer_name"]
+            streamer_label = "Stream"
 
-            game_id = result['g'].properties['name']
-            game_name = result['g'].properties['name']
-            game_label = 'Game'
+            game_id = result["game_name"]
+            game_name = result["game_name"]
+            game_label = "Game"
 
-            language_id = result['l'].properties['name']
-            language_name = result['l'].properties['name']
-            language_label = 'Language'
+            language_id = result["language_name"]
+            language_name = result["language_name"]
+            language_label = "Language"
 
             nodes_set.add((streamer_id, streamer_name, streamer_label))
             nodes_set.add((game_id, game_name, game_label))
@@ -468,7 +520,9 @@ def get_streamers(language, game):
         links = [{"source": n_id, "target": m_id} for (n_id, m_id) in links_set]
 
         response = {"nodes": nodes, "links": links}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Data fetching went wrong.")
@@ -481,22 +535,26 @@ def get_streamers(language, game):
 def get_all_streamers_names():
     """Get the names of all streamers."""
     try:
-        results = memgraph.execute_and_fetch(
-            """MATCH (n:Stream)
-                RETURN n.name AS streamer_name, n.totalViewCount AS view_count;"""
+        results = list(
+            Match()
+            .node("Stream", variable="stream")
+            .return_({"stream.name": "streamer_name"})
+            .execute()
         )
 
         streamers_list = list()
 
         for result in results:
-            streamer_name = result['streamer_name']
-            view_count = result['view_count']
-            streamer = {"title": streamer_name, "description": "streamer",
-                        "image": "image", "price": str(view_count)}
+            streamer_name = result["streamer_name"]
+            streamer = {
+                "title": streamer_name,
+            }
             streamers_list.append(streamer)
 
         response = {"streamers": streamers_list}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
@@ -509,25 +567,28 @@ def get_all_streamers_names():
 def get_all_games_names():
     """Get the names of all games."""
     try:
-        results = memgraph.execute_and_fetch(
-            """MATCH(n:Game)
-                RETURN n.name AS game_name;"""
+        results = list(
+            Match()
+            .node("Game", variable="game")
+            .return_({"game.name": "name"})
+            .execute()
         )
 
         games_list = list()
 
         for result in results:
-            game_name = result['game_name']
-            game = {"title": game_name, "description": "game",
-                    "image": "image", "price": "0"}
+            game = {"title": result["name"]}
             games_list.append(game)
 
         response = {"games": games_list}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching top teams went wrong.")
         log.info(e)
+        traceback.print_exc()
         return ("", 500)
 
 
@@ -536,21 +597,22 @@ def get_all_games_names():
 def get_all_languages_names():
     """Get the names of all languages."""
     try:
-        results = memgraph.execute_and_fetch(
-            """MATCH(n:Language)
-                RETURN n.name AS language_name;"""
+        results = list(
+            Match()
+            .node("Language", variable="lang")
+            .return_({"lang.name": "name"})
+            .execute()
         )
-
         languages_list = list()
 
         for result in results:
-            language_name = result['language_name']
-            language = {"title": language_name,
-                        "description": "language", "image": "image", "price": "0"}
+            language = {"title": result["name"]}
             languages_list.append(language)
 
         response = {"languages": languages_list}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching all languages went wrong.")
@@ -563,16 +625,17 @@ def get_all_languages_names():
 def get_nodes():
     """Get the number of nodes in database."""
     try:
-        results = memgraph.execute_and_fetch(
-            """MATCH ()
-            RETURN count(*) AS nodes;"""
-        )
-
-        for result in results:
-            num_of_nodes = result['nodes']
+        num_of_nodes = next(
+            Match()
+            .node(variable="node")
+            .return_({"count(node)": "num_of_nodes"})
+            .execute()
+        )["num_of_nodes"]
 
         response = {"nodes": num_of_nodes}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching number of nodes went wrong.")
@@ -585,16 +648,19 @@ def get_nodes():
 def get_edges():
     """Get the number of edges in database."""
     try:
-        results = memgraph.execute_and_fetch(
-            """MATCH ()-[r]->()
-            RETURN count(r) AS edges;"""
-        )
-
-        for result in results:
-            num_of_edges = result['edges']
+        num_of_edges = next(
+            Match()
+            .node()
+            .to(variable="r")
+            .node()
+            .return_({"count(r)": "num_of_edges"})
+            .execute()
+        )["num_of_edges"]
 
         response = {"edges": num_of_edges}
-        return Response(response=dumps(response), status=200, mimetype="application/json")
+        return Response(
+            response=dumps(response), status=200, mimetype="application/json"
+        )
 
     except Exception as e:
         log.info("Fetching number of nodes went wrong.")
@@ -612,7 +678,7 @@ def load_data():
     log.info("Loading data into Memgraph.")
     try:
         memgraph.drop_database()
-        load_twitch_data(memgraph)
+        twitch_data.load()
     except Exception as e:
         log.info("Data loading error.")
 
@@ -622,10 +688,23 @@ def index():
     return render_template("index.html")
 
 
+def connect_to_memgraph():
+    connection_established = False
+    while not connection_established:
+        try:
+            if memgraph._get_cached_connection().is_active():
+                connection_established = True
+        except:
+            log.info("Memgraph probably isn't running.")
+            time.sleep(4)
+
+
 def main():
+    global args
+    args = parse_args()
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        connect_to_memgraph(memgraph)
         init_log()
+        connect_to_memgraph()
         load_data()
     app.run(host=args.host, port=args.port, debug=args.debug)
 

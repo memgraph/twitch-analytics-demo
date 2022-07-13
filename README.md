@@ -13,14 +13,24 @@ You can simply start the app by running:
 docker-compose build
 docker-compose up core
 docker-compose up twitch-app
+```
+
+If you get the error `mgclient.OperationalError: couldn't connect to host: Connection refused` please try running `docker-compose up twitch-app` again.
+When data loading is done, run:
+
+```
 docker-compose up react-app
 ```
 
-To start streaming the data run:
+Check out the app at `localhost:3000`.
+
+To start streaming the rest of the data run:
 
 ```
 docker-compose up twitch-stream
 ```
+
+Notice how the number of nodes and edges are changing on the navigation bar. Also if you refresh the results of the PageRank below, you'll see the rank difference.
 
 ## :bar_chart: General statistics
 

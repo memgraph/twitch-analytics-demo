@@ -33,13 +33,9 @@ services:
       - app-tier
   memgraph-mage:
     build: ./memgraph
-    volumes:
-      - ./memgraph/mg_lib:/var/lib/memgraph
-      - ./memgraph/mg_log:/var/log/memgraph
     entrypoint:
       [
         "/usr/lib/memgraph/memgraph",
-        "--telemetry-enabled=false"
       ]
     ports:
       - "7687:7687"

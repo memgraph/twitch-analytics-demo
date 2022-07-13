@@ -10,6 +10,7 @@ The data was collected using [Twitch API](https://dev.twitch.tv/docs/api/). The 
 You can simply start the app by running:
 
 ```
+docker-compose build
 docker-compose up core
 docker-compose up twitch-app
 docker-compose up react-app

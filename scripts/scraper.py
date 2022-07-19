@@ -33,7 +33,6 @@ def get_streams(client, cursor, ctr, batch_size):
 
     streams_file = open("streams.csv", "a", encoding="utf-8", newline="")
     csv_writer = csv.writer(streams_file)
-    count = 0
     user_ids = list()
 
     new_dict_keys = (
@@ -48,10 +47,10 @@ def get_streams(client, cursor, ctr, batch_size):
 
     for stream in streams["data"]:
         small_stream = dict_filter(stream, new_dict_keys)
-        if count == 0 and ctr == 0:
+        if ctr == 0:
             header = small_stream.keys()
             csv_writer.writerow(header)
-            count += 1
+            ctr += 1
 
         user_ids.append(small_stream["user_id"])
         csv_writer.writerow(small_stream.values())
@@ -74,18 +73,17 @@ def get_users(client, user_ids, ctr):
 
     new_dict_keys = ("id", "description", "view_count", "created_at")
     users = client.get_users(user_ids=user_ids)["data"]
-    count = 0
     print(users)
 
     users_file = open("users.csv", "a", encoding="utf-8", newline="")
     csv_writer = csv.writer(users_file)
     for user in users:
         small_user = dict_filter(user, new_dict_keys)
-        if count == 0 and ctr == 0:
+        if ctr == 0:
             # Writing headers of CSV file
             header = small_user.keys()
             csv_writer.writerow(header)
-            count += 1
+            ctr += 1
         # Writing data of CSV file
         csv_writer.writerow(small_user.values())
         print("writing new user")
@@ -107,7 +105,9 @@ def get_teams(client):
     Args:
         client: Twitch client
     """
-    user_ids = get_user_ids()
+    col_list = ["user_id"]
+    df = pd.read_csv("streams.csv", usecols=col_list)
+    user_ids = df.values.tolist()
     all_teams = {}
 
     for user_id in user_ids:
@@ -138,7 +138,9 @@ def get_followers(client):
     Args:
         client: Twitch client
     """
-    user_ids = get_user_ids()
+    col_list = ["user_id"]
+    df = pd.read_csv("streams.csv", usecols=col_list)
+    user_ids = df.values.tolist()
     followers = dict()
 
     for user_id in user_ids:
@@ -262,8 +264,8 @@ def get_all_data(client_id, client_secret, num_of_streams):
         get_users(client, user_ids, i)
 
     if last_batch_size != 0:
-        cursor, user_ids = get_streams(client, cursor, i, last_batch_size)
-        get_users(client, user_ids, i)
+        cursor, user_ids = get_streams(client, cursor, 1, last_batch_size)
+        get_users(client, user_ids, 1)
 
     get_teams(client)
     get_followers(client)
